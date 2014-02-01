@@ -16,7 +16,7 @@ package com.sanoma.cda.geoip
 import com.maxmind.geoip2.DatabaseReader
 
 // Import LRU map from Twitter
-import com.twitter.util.LruMap
+import com.twitter.util.{LruMap, SynchronizedLruMap}
 
 // Java for MaxMind
 import java.io.File
@@ -33,7 +33,7 @@ import java.net.InetAddress
  * @param dbFile The DB file unzipped
  * @param lruCache The Size of the LRU cache
  */
-class MaxMindIpGeo(dbFile: File, lruCache: Int = 10000) {
+class MaxMindIpGeo(dbFile: File, lruCache: Int = 10000, synchronized: Boolean = false) {
 
   /**
    * Helper function that turns string into InetAddress
@@ -73,7 +73,10 @@ class MaxMindIpGeo(dbFile: File, lruCache: Int = 10000) {
 
 
   // setup cache
-  private val lru = if (lruCache > 0) new LruMap[String, Option[IpLocation]](lruCache) else null
+  def chooseAndCreateNewLru = if (synchronized) new SynchronizedLruMap[String, Option[IpLocation]](lruCache)
+                              else new LruMap[String, Option[IpLocation]](lruCache)
+
+  private val lru = if (lruCache > 0) chooseAndCreateNewLru else null
 
 
   // define the actual accessor methods
@@ -119,8 +122,8 @@ object MaxMindIpGeo {
   /**
    * Alternative constructor, probably the one you are going to use
    */
-  def apply(dbFile: String, lruCache: Int = 10000) = {
-    new MaxMindIpGeo(new File(dbFile), lruCache)
+  def apply(dbFile: String, lruCache: Int = 10000, synchronized: Boolean = false) = {
+    new MaxMindIpGeo(new File(dbFile), lruCache, synchronized)
   }
 
 }
