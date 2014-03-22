@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Sanoma Oyj. All rights reserved.
+ * Copyright (c) 2013-2014 Sanoma Oyj. All rights reserved.
  *
  * This program is licensed to you under the Apache License Version 2.0,
  * and you may not use this file except in compliance with the Apache License Version 2.0.
@@ -11,6 +11,8 @@
  * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
  */
 package com.sanoma.cda.geoip
+
+import com.sanoma.cda.geo._
 
 // Import MaxMind
 import com.maxmind.geoip2.DatabaseReader
@@ -33,7 +35,7 @@ import java.net.InetAddress
  * @param dbFile The DB file unzipped
  * @param lruCache The Size of the LRU cache
  */
-class MaxMindIpGeo(dbFile: File, lruCache: Int = 10000, synchronized: Boolean = false) {
+class MaxMindIpGeo(dbFile: File, lruCache: Int = 10000, synchronized: Boolean = false, geoPointBlacklist: Set[Point] = Set()) {
 
   /**
    * Helper function that turns string into InetAddress
@@ -78,14 +80,23 @@ class MaxMindIpGeo(dbFile: File, lruCache: Int = 10000, synchronized: Boolean = 
 
   private val lru = if (lruCache > 0) chooseAndCreateNewLru else null
 
+  // There seem to be lot of IP addresses that give back a location that is definitely wrong
+  // TODO: extend this as if the lat, long is wrong, then other things are probably wrong too
+  def filterBlacklistedCoordinates(loc: IpLocation) = loc.geoPoint match {
+    case Some(p) if geoPointBlacklist.contains(p) => loc.copy(geoPoint = None)
+    case _ => loc
+  }
 
   // define the actual accessor methods
+  def getLocationFiltered(address: String) = getLocationFromDB(address).map(IpLocation(_)).map(filterBlacklistedCoordinates)
+  def getLocationUnfiltered(address: String) = getLocationFromDB(address).map(IpLocation(_))
+
   /**
    * Returns the location of given address directly from DB
    * @param address The IP or host
    * @return Option[IpLocation]
    */
-  def getLocationWithoutLruCache(address: String) = getLocationFromDB(address).map(IpLocation(_))
+  val getLocationWithoutLruCache = if (geoPointBlacklist.isEmpty) getLocationUnfiltered _ else getLocationFiltered _
 
 
   /**
@@ -109,7 +120,7 @@ class MaxMindIpGeo(dbFile: File, lruCache: Int = 10000, synchronized: Boolean = 
    * This is the main method that returns the Option[IpLocation] form given IP or host
    * @return The method that provides the IpLocation from given input string representing either IP address or name
    */
-  val getLocation = if (lruCache > 0) getLocationWithLruCache _ else getLocationWithoutLruCache _
+  val getLocation: String => Option[IpLocation] = if (lruCache > 0) getLocationWithLruCache else getLocationWithoutLruCache
 
 }
 
@@ -122,8 +133,8 @@ object MaxMindIpGeo {
   /**
    * Alternative constructor, probably the one you are going to use
    */
-  def apply(dbFile: String, lruCache: Int = 10000, synchronized: Boolean = false) = {
-    new MaxMindIpGeo(new File(dbFile), lruCache, synchronized)
+  def apply(dbFile: String, lruCache: Int = 10000, synchronized: Boolean = false, geoPointBlacklist: Set[Point] = Set()) = {
+    new MaxMindIpGeo(new File(dbFile), lruCache, synchronized, geoPointBlacklist)
   }
 
 }

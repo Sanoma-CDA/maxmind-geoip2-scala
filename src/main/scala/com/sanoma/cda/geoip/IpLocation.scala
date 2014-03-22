@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Sanoma Oyj. All rights reserved.
+ * Copyright (c) 2013-2014 Sanoma Oyj. All rights reserved.
  *
  * This program is licensed to you under the Apache License Version 2.0,
  * and you may not use this file except in compliance with the Apache License Version 2.0.
@@ -12,6 +12,8 @@
  */
 package com.sanoma.cda.geoip
 
+import com.sanoma.cda.geo._
+
 /**
  * Case class to hold the location information from MaxMind.
  */
@@ -20,7 +22,7 @@ case class IpLocation(
                        countryName: Option[String],
                        region: Option[String],
                        city: Option[String],
-                       latlon: Option[(Double, Double)],
+                       geoPoint: Option[Point],
                        postalCode: Option[String],
                        continent: Option[String])
 
@@ -34,7 +36,7 @@ object IpLocation {
 
   // Doesn't make sense to only have Latitude or Longitude
   def combineLatLong(lat: Option[Double], lon: Option[Double]) = (lat, lon) match {
-    case (Some(lat), Some(lon)) => Some((lat,lon))
+    case (Some(lat), Some(lon)) => Some(Point(lat,lon))
     case _ => None
   }
 

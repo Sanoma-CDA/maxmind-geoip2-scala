@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Sanoma Oyj. All rights reserved.
+ * Copyright (c) 2013-2014 Sanoma Oyj. All rights reserved.
  *
  * This program is licensed to you under the Apache License Version 2.0,
  * and you may not use this file except in compliance with the Apache License Version 2.0.
@@ -16,6 +16,8 @@ import org.scalatest.FunSuite
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.matchers.ShouldMatchers._
 import java.net.InetAddress
+
+import com.sanoma.cda.geo._
 
 class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
 
@@ -37,7 +39,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
         countryName = Some("Norway"),
         region = None,
         city = None,
-        latlon = Some((62,10)),
+        geoPoint = Some(Point(62,10)),
         postalCode = None,
         continent = Some("Europe")
       )),
@@ -48,7 +50,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
         countryName = Some("United Kingdom"),
         region = Some("Cambridgeshire"),
         city = Some("Cambridge"),
-        latlon = Some((52.2, 0.1167)),
+        geoPoint = Some(Point(52.2, 0.1167)),
         postalCode = None,
         continent = Some("Europe")
       )),
@@ -59,7 +61,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
         countryName = Some("United States"),
         region = None,
         city = None,
-        latlon = Some((38.0, -97.0)),
+        geoPoint = Some(Point(38.0, -97.0)),
         postalCode = None,
         continent = Some("North America")
       )),
@@ -70,7 +72,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
         countryName = Some("United Kingdom"),
         region = None,
         city = None,
-        latlon = Some((51.5, -0.13)),
+        geoPoint = Some(Point(51.5, -0.13)),
         postalCode = None,
         continent = Some("Europe")
       )),
@@ -153,4 +155,27 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
     }
   }
 
+  test("geo point black list") {
+    // blacklist the first geo coordinate:
+    // (62,10)
+    val geo = MaxMindIpGeo(MaxMindDB, 0, false, Set(Point(62,10)))
+
+    // check the changed
+    val expected = Some(IpLocation(
+      countryCode = Some("NO"),
+      countryName = Some("Norway"),
+      region = None,
+      city = None,
+      geoPoint = None,
+      postalCode = None,
+      continent = Some("Europe")
+    ))
+
+    geo.getLocation("213.52.50.8") should be === expected
+
+    // others should still be fine:
+    for ((address, expected) <- testData.filterKeys{k => k != "213.52.50.8"}) {
+      geo.getLocationWithoutLruCache(address) should be === expected
+    }
+  }
 }
