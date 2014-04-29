@@ -28,7 +28,6 @@ abstract class GeoArea {
    */
   def getExtremes: List[Point]
 
-  //TODO: def toKLM(height: Double = 0.0): String
 }
 
 
@@ -71,7 +70,7 @@ object BoundingBox{
  * @param center - this assumes coordinates in degrees
  * @param radius_m - the radius is in meters
  */
-case class Circle(center: Point, radius_m: Long) extends GeoArea {
+case class Circle(center: Point, radius_m: Double) extends GeoArea {
   import funcs._
 
   override def getExtremes = pointsAtDistanceWithSameLatitude(center, radius_m) ++ pointsAtDistanceWithSameLongitude(center, radius_m)
@@ -86,16 +85,19 @@ case class Circle(center: Point, radius_m: Long) extends GeoArea {
   // 1.0000001 just making sure we're ever so slightly larger with the extremes
   import math.{cos, toRadians, toDegrees}
   def pointsAtDistanceWithSameLatitude(p: Point, dist_m: Double) = {
-    val diff = toDegrees(1.0000001 * dist_m / (R * cos(toRadians(p.latitude))))
+    val diff = toDegrees(1.0000001 * dist_m / (EarthRadius * cos(toRadians(p.latitude))))
     List(Point(p.latitude, p.longitude + diff), Point(p.latitude, p.longitude - diff))
   }
 
   def pointsAtDistanceWithSameLongitude(p: Point, dist_m: Double) = {
-    val diff = toDegrees(1.0000001 * dist_m / R)
+    val diff = toDegrees(1.0000001 * dist_m / EarthRadius)
     List(Point(p.latitude + diff, p.longitude), Point(p.latitude - diff, p.longitude))
   }
 }
 
+object Circle {
+  def apply(center: Point, pointOnTheCircle: Point) = new Circle(center, center.distanceTo(pointOnTheCircle))
+}
 
 /**
  * Polygon
@@ -127,7 +129,6 @@ case class Polygon(points: List[Point], boundingBox: BoundingBox) extends GeoAre
     }.sum
     isOdd(countCrossings(p))
   }
-
 }
 
 object Polygon {

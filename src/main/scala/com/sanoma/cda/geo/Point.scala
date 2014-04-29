@@ -35,7 +35,7 @@ case class Point(latitude: Double, longitude: Double){
 object funcs {
   import math.{sin, cos, atan2, pow, toRadians, sqrt}
 
-  val R = 6371009 // meters, http://en.wikipedia.org/wiki/Earth_radius#Mean_radius
+  val EarthRadius = 6371009 // meters, http://en.wikipedia.org/wiki/Earth_radius#Mean_radius
 
   /**
    * Distance using the simple pythagoran formula
@@ -50,7 +50,7 @@ object funcs {
     val dLatRad = toRadians(p2.latitude - p1.latitude)
     val dLngRad = toRadians(p2.longitude - p1.longitude)
     val meanLat = toRadians(p2.latitude + p1.latitude) / 2.0
-    R * sqrt(pow(dLatRad, 2) + pow(cos(meanLat) * dLngRad, 2))
+    EarthRadius * sqrt(pow(dLatRad, 2) + pow(cos(meanLat) * dLngRad, 2))
   }
 
   /**
@@ -68,6 +68,6 @@ object funcs {
     val p2LatRad = toRadians(p2.latitude)
     val a = haversin(dLatRad) + cos(p1LatRad) * cos(p2LatRad) * haversin(dLngRad)
     val c = 2 * atan2(sqrt(a), sqrt(1-a))
-    R * c
+    EarthRadius * c
   }
 }

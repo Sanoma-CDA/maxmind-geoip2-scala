@@ -43,6 +43,20 @@ class GeoArea_test extends FunSuite with PropertyChecks {
     rects.map{r => r.contains((1.0, 1.0))} should be === answers
   }
 
+  test("circle creation with 2 points") {
+    def pointsAtDistanceWithSameLongitude(p: Point, dist_m: Double) = {
+      import math.toDegrees
+      import funcs._
+      val diff = toDegrees(dist_m / EarthRadius)
+      List(Point(p.latitude + diff, p.longitude), Point(p.latitude - diff, p.longitude))
+    }
+    val testDist = 5000.0
+    val points2 = pointsAtDistanceWithSameLongitude(Point(60.17, 24.94), testDist)
+    val c0 = Circle(Point(60.17, 24.94), points2(0))
+    c0.center should be === Point(60.17, 24.94)
+    (math.abs(c0.radius_m - testDist) < (0.00001 * testDist)) should be === true
+  }
+
   test("circle simple inclusion") {
     val helsinki = Point(60.17, 24.94)
     val tamminiemi = Point(60.1892,24.8838)
