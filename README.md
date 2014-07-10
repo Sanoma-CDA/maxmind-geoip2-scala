@@ -11,11 +11,11 @@ Installation
 
 I suggest that you clone this repository and publish to local repository to be used in another project.
 
-sbt +publish-local
+`sbt +publish-local`
 
 After that, you can use it in your sbt by adding the following dependency:
 
-libraryDependencies += "com.sanoma.cda" %% "maxmind-geoip2-scala" % "1.2"
+`libraryDependencies += "com.sanoma.cda" %% "maxmind-geoip2-scala" % "1.2"`
 
 You should also be able to generate a fat jar with Assembly.
 We chose not to include the data file into the jar as you should update that form time to time.
@@ -31,10 +31,11 @@ Usage
 
 Here is a simple usage example:
 
+```scala
 import com.sanoma.cda.geoip.MaxMindIpGeo
 val geoIp = MaxMindIpGeo("/data/MaxMind/GeoLite2-City.mmdb", 1000)
 println(geoIp.getLocation("123.123.123.123"))
-
+```
 
 Geo-package
 ===========
@@ -49,20 +50,22 @@ The GeoAreaMap is designed to hold the different geo areas, such as the circles,
 
 Here is an example of doing lookup using GeoAreaMap
 
-    import com.sanoma.cda.geo._
-    val turku = Point(60.45, 22.25)
-    val helsinki = Point(60.17, 24.94)
-    val tamminiemi = Point(60.1892,24.8838)
-    val mantyniemi = Point(60.1844,24.8968)
-    val hCircle = Circle(helsinki, 3500) // 3.5km around Helsinki
-    val tCircle = Circle(tamminiemi, 1000)
-    val hRectangle = Rectangle(lowerLeft = (60.15, 24.84), topRight = (60.20, 25.00))
-    val aPoly = Polygon(List((60.30, 24.88), (60.34, 24.95), (60.295, 25.02)))
+```scala
+import com.sanoma.cda.geo._
+val turku = Point(60.45, 22.25)
+val helsinki = Point(60.17, 24.94)
+val tamminiemi = Point(60.1892,24.8838)
+val mantyniemi = Point(60.1844,24.8968)
+val hCircle = Circle(helsinki, 3500) // 3.5km around Helsinki
+val tCircle = Circle(tamminiemi, 1000)
+val hRectangle = Rectangle(lowerLeft = (60.15, 24.84), topRight = (60.20, 25.00))
+val aPoly = Polygon(List((60.30, 24.88), (60.34, 24.95), (60.295, 25.02)))
 
-    val data = List("tamminiemi" -> tCircle, "helsinki" -> hCircle, "airport" -> aPoly, "hRect" -> hRectangle)
-    val gmap = GeoAreaMap.fromSeq(data)
+val data = List("tamminiemi" -> tCircle, "helsinki" -> hCircle, "airport" -> aPoly, "hRect" -> hRectangle)
+val gmap = GeoAreaMap.fromSeq(data)
 
-    gmap.get(turku) // None
-    gmap.get(mantyniemi) // Some("tamminiemi")
-    gmap.getAll(mantyniemi) // List(tamminiemi, helsinki, hRect)
+gmap.get(turku) // None
+gmap.get(mantyniemi) // Some("tamminiemi")
+gmap.getAll(mantyniemi) // List(tamminiemi, helsinki, hRect)
+```
 
