@@ -2,7 +2,7 @@ name := "maxmind-geoip2-scala"
 
 organization := "com.sanoma.cda"
 
-version := "1.2.2-SNAPSHOT"
+version := "1.3.0-SNAPSHOT"
 
 scalaVersion := "2.9.2"
 
