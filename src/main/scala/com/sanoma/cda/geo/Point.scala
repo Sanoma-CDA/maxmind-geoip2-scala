@@ -35,7 +35,7 @@ case class Point(latitude: Double, longitude: Double){
 object funcs {
   import math.{sin, cos, atan2, pow, toRadians, sqrt}
 
-  val EarthRadius = 6371009 // meters, http://en.wikipedia.org/wiki/Earth_radius#Mean_radius
+  val EarthRadius = 6371009.0 // meters, http://en.wikipedia.org/wiki/Earth_radius#Mean_radius
 
   /**
    * Distance using the simple pythagoran formula
