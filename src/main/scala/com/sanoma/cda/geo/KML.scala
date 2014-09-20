@@ -17,6 +17,7 @@ import scala.xml.Elem
 object KML {
 
   type KMLPlacemark = Elem
+  type KMLFolder = Elem
   type KMLColor = String
 
   /**
@@ -26,15 +27,30 @@ object KML {
    * XML.write(out, kml, "utf-8", xmlDecl = true, doctype = null)
    * out.close
    */
-  def getKMLDoc(name: String, placemarks: Seq[KMLPlacemark]) = {
+  def getKMLMasterDoc(folders: Seq[KMLFolder], documentID: String = "Geo areas") =
     <kml xmlns="http://www.opengis.net/kml/2.2">
-      <Document id={name}>
-        <name>{name}</name>
-        <visibility>1</visibility>
-        { placemarks }
+      <Document id={documentID}>
+        <open>1</open>
+      { folders }
       </Document>
     </kml>
-  }
+
+
+  def getKMLFolder(name: String, folders: List[KMLFolder]): KMLFolder =
+    <Folder id={name}>
+      <name>{name}</name>
+      <open>0</open>
+      <visibility>1</visibility>
+      { folders }
+    </Folder>
+
+  def getKMLFolder(name: String, placemarks: Seq[KMLPlacemark]): KMLFolder =
+    <Folder id={name}>
+      <name>{name}</name>
+      <open>0</open>
+      <visibility>1</visibility>
+      { placemarks }
+    </Folder>
 
   def rgb2KMLColor(rgb: (Double, Double, Double)) = rgba2KMLColor((rgb._1, rgb._2, rgb._3, 1.0))
   // KML is strange: hexBinary value: aabbggrr
@@ -64,6 +80,7 @@ object KML {
   def geoArea2KMLPlacemark(geo: GeoArea, name: String, height: Double = 0.0, lineColorHex: Option[KMLColor], polyColorHex: Option[KMLColor]): KMLPlacemark = {
     geo match {
       case poly: Polygon => polygon2KMLPlacemark(poly, name, height, lineColorHex, polyColorHex)
+      case circle: Circle => polygon2KMLPlacemark(Circle.circle2Polygon(circle, 60), name, height, lineColorHex, polyColorHex)
       case _ => unknownPlacemark
     }
   }
@@ -84,7 +101,8 @@ object KML {
       }
       <Polygon id={"P_" + name}>
         <extrude>1</extrude>
-        <altitudeMode>relativeToGround</altitudeMode>
+        { if (height == 0.0) <altitudeMode>clampToGround</altitudeMode>
+        else <altitudeMode>relativeToGround</altitudeMode> }
         <outerBoundaryIs>
           <LinearRing id={"LR_" + name}>
             <coordinates>

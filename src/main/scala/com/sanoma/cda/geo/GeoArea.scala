@@ -97,6 +97,22 @@ case class Circle(center: Point, radius_m: Double) extends GeoArea {
 
 object Circle {
   def apply(center: Point, pointOnTheCircle: Point) = new Circle(center, center.distanceTo(pointOnTheCircle))
+  def circle2Polygon(c: Circle, n: Int): Polygon = {
+    import math.{toRadians, toDegrees, sin, cos, asin, atan2, Pi}
+    import funcs._
+    val lat1 = toRadians(c.center.latitude)
+    val long1 = toRadians(c.center.longitude)
+    val d_rad = c.radius_m / EarthRadius
+
+    val points = (0 to n).map{i =>
+      val radial = i * (2 * Pi)/n
+      val lat_rad = asin(sin(lat1) * cos(d_rad) + cos(lat1) * sin(d_rad) * cos(radial))
+      val dlon_rad = atan2(sin(radial) * sin(d_rad) * cos(lat1), cos(d_rad)- sin(lat1) * sin(lat_rad))
+      val lon_rad = ((long1 + dlon_rad + Pi) % (2 * Pi)) - Pi
+      Point(toDegrees(lat_rad), toDegrees(lon_rad))
+    }
+    new Polygon(points.toList, c.boundingBox)
+  }
 }
 
 /**

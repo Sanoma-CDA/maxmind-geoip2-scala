@@ -14,7 +14,7 @@ package com.sanoma.cda.geo
 
 // Note that the search is actually done lazily starting from the top -> make sure the polygons
 // that are most expected in your data are in the beginning of the stream
-class GeoAreaMap(data: Map[String, GeoArea], searchStream: List[(String, GeoArea)], globalBB: BoundingBox){
+class GeoAreaMap(val data: Map[String, GeoArea], searchStream: List[(String, GeoArea)], globalBB: BoundingBox) {
   def get(name: String) = data(name)
   def get(p: Point) = if (globalBB.contains(p)) getOneFromStream(p) else None
   def getAll(p: Point) = if (globalBB.contains(p)) getAllFromStream(p) else List()
@@ -42,7 +42,7 @@ object GeoAreaMap {
     new GeoAreaMap(data.map(t => Map(t)).reduce(_ ++ _), searchList, bb)
   }
 
-  def fromStrIter(dataStrings: Iterator[String], parse: (String => Option[(String, Polygon)]), priority: Map[String, Double] = Map()) = {
+  def fromStrIter(dataStrings: Iterator[String], parse: (String => Option[(String, GeoArea)]), priority: Map[String, Double] = Map()) = {
     val data = dataStrings.map{
       line: String =>
         parse(line)
@@ -50,7 +50,7 @@ object GeoAreaMap {
     fromSeq(data, priority)
   }
 
-  def fromFile(filename: String, parse: (String => Option[(String, Polygon)]), priority: Map[String, Double] = Map()) = {
+  def fromFile(filename: String, parse: (String => Option[(String, GeoArea)]), priority: Map[String, Double] = Map()) = {
     import scala.io.Source
     fromStrIter(Source.fromFile(filename).getLines(), parse)
   }

@@ -101,4 +101,18 @@ class GeoArea_test extends FunSuite with PropertyChecks {
     poly.mayContain((4.1,-2.1)) should be === false
   }
 
+  test("Circle2Polygon") {
+    val helsinki = Point(60.17, 24.94)
+    val hCircle = Circle(helsinki, 3500) // 3.5km around Helsinki
+    for (segments <- 3 to 60 by 5) {
+      val polyCircle = Circle.circle2Polygon(hCircle, segments)
+      polyCircle.points.map{t => math.abs(funcs.distanceHaversine(helsinki, t) - 3500) < 0.001}.reduce(_ && _) should be === true
+    }
+
+    for (distances <- (10 to 1000 by 10) ++ (1000 to 500000 by 10000)) {
+      val hCircle = Circle(helsinki, distances) // ??km around Helsinki
+      val polyCircle = Circle.circle2Polygon(hCircle, 60)
+      polyCircle.points.map{t => math.abs(funcs.distanceHaversine(helsinki, t) - distances) < 0.001}.reduce(_ && _) should be === true
+    }
+  }
 }
