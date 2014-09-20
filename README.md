@@ -15,16 +15,22 @@ I suggest that you clone this repository and publish to local repository to be u
 
 After that, you can use it in your sbt by adding the following dependency:
 
-`libraryDependencies += "com.sanoma.cda" %% "maxmind-geoip2-scala" % "1.2"`
+`libraryDependencies += "com.sanoma.cda" %% "maxmind-geoip2-scala" % "1.3.1"`
 
 You should also be able to generate a fat jar with Assembly.
-We chose not to include the data file into the jar as you should update that form time to time.
+We chose not to include the data file into the jar as you should update that from time to time.
 
 Data
 ====
 Download (and unzip) data from here:
 http://dev.maxmind.com/geoip/geoip2/geolite2/
 http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz
+
+Running tests
+=============
+Before running tests download the GeoLite2-City.mmdb. There is a script in src/test/resources to help you in that (the db must be in src/test/resources). Then just run tests with:
+
+`sbt +test`
 
 Usage
 =====

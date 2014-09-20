@@ -21,7 +21,7 @@ import com.maxmind.geoip2.DatabaseReader
 import com.twitter.util.{LruMap, SynchronizedLruMap}
 
 // Java for MaxMind
-import java.io.File
+import java.io.{FileInputStream, File, InputStream}
 import java.net.InetAddress
 
 
@@ -32,10 +32,10 @@ import java.net.InetAddress
  * Download the database from http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz
  *
  * Inspired by https://github.com/snowplow/scala-maxmind-geoip
- * @param dbFile The DB file unzipped
+ * @param dbInputStream The DB file unzipped
  * @param lruCache The Size of the LRU cache
  */
-class MaxMindIpGeo(dbFile: File, lruCache: Int = 10000, synchronized: Boolean = false, geoPointBlacklist: Set[Point] = Set()) {
+class MaxMindIpGeo(dbInputStream: InputStream, lruCache: Int = 10000, synchronized: Boolean = false, geoPointBlacklist: Set[Point] = Set()) {
 
   /**
    * Helper function that turns string into InetAddress
@@ -60,7 +60,7 @@ class MaxMindIpGeo(dbFile: File, lruCache: Int = 10000, synchronized: Boolean = 
 
 
   // build the lookup service
-  private val maxmind = new DatabaseReader.Builder(dbFile).build
+  protected val maxmind = new DatabaseReader.Builder(dbInputStream).build
 
   /**
    * Reads the address location from location service DB
@@ -134,7 +134,7 @@ object MaxMindIpGeo {
    * Alternative constructor, probably the one you are going to use
    */
   def apply(dbFile: String, lruCache: Int = 10000, synchronized: Boolean = false, geoPointBlacklist: Set[Point] = Set()) = {
-    new MaxMindIpGeo(new File(dbFile), lruCache, synchronized, geoPointBlacklist)
+    new MaxMindIpGeo(new FileInputStream(new File(dbFile)), lruCache, synchronized, geoPointBlacklist)
   }
 
 }
