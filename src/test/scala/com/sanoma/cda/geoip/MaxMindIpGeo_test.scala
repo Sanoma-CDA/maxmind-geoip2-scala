@@ -28,7 +28,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
     val geo = MaxMindIpGeo(MaxMindDB, 0)
     geo.getInetAddress("123.123.123.123") should be === Some(InetAddress.getByName("123.123.123.123"))
     geo.getInetAddress("localhost").get.getHostAddress should be === "127.0.0.1"
-    geo.getInetAddress("foo.bar") should be === None
+    geo.getInetAddress("foo.bar.baz") should be === None
   }
 
   // This data seemed to work on 2013-11-20... if the MaxMind data changes, these values can change
