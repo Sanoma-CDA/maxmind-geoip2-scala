@@ -2,12 +2,12 @@ name := "maxmind-geoip2-scala"
 
 organization := "com.sanoma.cda"
 
-version := "1.3.0-SNAPSHOT"
+version := "1.3.1"
 
 scalaVersion := "2.9.2"
 
 // twitter util doesn't have 2.9.3
-crossScalaVersions := Seq("2.9.2", "2.10.3")
+crossScalaVersions := Seq("2.9.2", "2.10.4")
 
 libraryDependencies ++= Seq(
   "com.maxmind.geoip2" % "geoip2" % "0.7.0",
