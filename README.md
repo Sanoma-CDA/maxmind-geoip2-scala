@@ -15,7 +15,7 @@ I suggest that you clone this repository and publish to local repository to be u
 
 After that, you can use it in your sbt by adding the following dependency:
 
-`libraryDependencies += "com.sanoma.cda" %% "maxmind-geoip2-scala" % "1.3.1"`
+`libraryDependencies += "com.sanoma.cda" %% "maxmind-geoip2-scala" % "1.3.2"`
 
 You should also be able to generate a fat jar with Assembly.
 We chose not to include the data file into the jar as you should update that from time to time.
