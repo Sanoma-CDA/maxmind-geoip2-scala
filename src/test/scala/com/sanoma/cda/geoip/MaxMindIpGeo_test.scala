@@ -39,7 +39,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
         countryName = Some("Norway"),
         region = None,
         city = None,
-        geoPoint = Some(Point(62,10)),
+        geoPoint = Some(Point(59.95,10.75)),
         postalCode = None,
         continent = Some("Europe")
       )),
@@ -83,7 +83,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
 
   test("getLocationWithoutLruCache") {
     for ((address, expected) <- testData) {
-      val geo = MaxMindIpGeo(MaxMindDB, 0, false)
+      val geo = MaxMindIpGeo(MaxMindDB, 0, synchronized = false)
       geo.getLocationWithoutLruCache(address) should be === expected
     }
   }
@@ -92,13 +92,13 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
     val cacheSize = List(1000, 10000)
 
     for (cache <- cacheSize; (address, expected) <- testData) {
-      val geo = MaxMindIpGeo(MaxMindDB, cache, false)
+      val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = false)
       geo.getLocationWithLruCache(address) should be === expected
     }
 
     // again from the cache
     for (cache <- cacheSize; (address, expected) <- testData) {
-      val geo = MaxMindIpGeo(MaxMindDB, cache, false)
+      val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = false)
       geo.getLocationWithLruCache(address) should be === expected
     }
   }
@@ -107,20 +107,20 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
     val cacheSize = List(0, 1000, 10000)
 
     for (cache <- cacheSize; (address, expected) <- testData) {
-      val geo = MaxMindIpGeo(MaxMindDB, cache, false)
+      val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = false)
       geo.getLocation(address) should be === expected
     }
 
     // again from the cache
     for (cache <- cacheSize; (address, expected) <- testData) {
-      val geo = MaxMindIpGeo(MaxMindDB, cache, false)
+      val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = false)
       geo.getLocation(address) should be === expected
     }
   }
 
   test("getLocationWithoutLruCache - sync") {
     for ((address, expected) <- testData) {
-      val geo = MaxMindIpGeo(MaxMindDB, 0, true)
+      val geo = MaxMindIpGeo(MaxMindDB, 0, synchronized = true)
       geo.getLocationWithoutLruCache(address) should be === expected
     }
   }
@@ -129,13 +129,13 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
     val cacheSize = List(1000, 10000)
 
     for (cache <- cacheSize; (address, expected) <- testData) {
-      val geo = MaxMindIpGeo(MaxMindDB, cache, true)
+      val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = true)
       geo.getLocationWithLruCache(address) should be === expected
     }
 
     // again from the cache
     for (cache <- cacheSize; (address, expected) <- testData) {
-      val geo = MaxMindIpGeo(MaxMindDB, cache, true)
+      val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = true)
       geo.getLocationWithLruCache(address) should be === expected
     }
   }
@@ -144,13 +144,13 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
     val cacheSize = List(0, 1000, 10000)
 
     for (cache <- cacheSize; (address, expected) <- testData) {
-      val geo = MaxMindIpGeo(MaxMindDB, cache, true)
+      val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = true)
       geo.getLocation(address) should be === expected
     }
 
     // again from the cache
     for (cache <- cacheSize; (address, expected) <- testData) {
-      val geo = MaxMindIpGeo(MaxMindDB, cache, true)
+      val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = true)
       geo.getLocation(address) should be === expected
     }
   }
@@ -158,7 +158,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
   test("geo point black list") {
     // blacklist the first geo coordinate:
     // (62,10)
-    val geo = MaxMindIpGeo(MaxMindDB, 0, false, Set(Point(62,10)))
+    val geo = MaxMindIpGeo(MaxMindDB, 0, synchronized = false, Set(Point(59.95,10.75)))
 
     // check the changed
     val expected = Some(IpLocation(
