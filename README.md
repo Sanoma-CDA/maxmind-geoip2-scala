@@ -15,7 +15,7 @@ I suggest that you clone this repository and publish to local repository to be u
 
 After that, you can use it in your sbt by adding the following dependency:
 
-`libraryDependencies += "com.sanoma.cda" %% "maxmind-geoip2-scala" % "1.3.2"`
+`libraryDependencies += "com.sanoma.cda" %% "maxmind-geoip2-scala" % "1.3.4"`
 
 You should also be able to generate a fat jar with Assembly.
 We chose not to include the data file into the jar as you should update that from time to time.
@@ -64,7 +64,7 @@ val tamminiemi = Point(60.1892,24.8838)
 val mantyniemi = Point(60.1844,24.8968)
 val hCircle = Circle(helsinki, 3500) // 3.5km around Helsinki
 val tCircle = Circle(tamminiemi, 1000)
-val hRectangle = Rectangle(lowerLeft = (60.15, 24.84), topRight = (60.20, 25.00))
+val hRectangle = Rectangle(lowerLeft = (60.15, 24.84), upperRight = (60.20, 25.00))
 val aPoly = Polygon(List((60.30, 24.88), (60.34, 24.95), (60.295, 25.02)))
 
 val data = List("tamminiemi" -> tCircle, "helsinki" -> hCircle, "airport" -> aPoly, "hRect" -> hRectangle)
