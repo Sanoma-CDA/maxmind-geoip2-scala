@@ -14,6 +14,7 @@ package com.sanoma.cda.geo
 
 object Point {
   import Numeric.Implicits._
+  import language.implicitConversions
   implicit def tuple22Point[A](p: (A, A))(implicit n:Numeric[A]) = new Point(p._1.toDouble, p._2.toDouble)
   implicit def point2Tuple2(p: Point) = (p.latitude, p.longitude)
 }

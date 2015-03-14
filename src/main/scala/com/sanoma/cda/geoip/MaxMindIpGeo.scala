@@ -68,7 +68,7 @@ class MaxMindIpGeo(dbInputStream: InputStream, lruCache: Int = 10000, synchroniz
    * @return Option[com.maxmind.geoip2.model.OmniResponse]
    */
   def getLocationFromDB(address: String) = try {
-    getInetAddress(address).map(maxmind.omni(_))
+    getInetAddress(address).map(maxmind.city(_))
   } catch {
     case _ : Throwable => None // we don't really care about which exception we got
   }

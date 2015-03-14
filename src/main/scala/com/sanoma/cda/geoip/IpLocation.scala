@@ -12,6 +12,7 @@
  */
 package com.sanoma.cda.geoip
 
+import com.maxmind.geoip2.model.CityResponse
 import com.sanoma.cda.geo._
 
 /**
@@ -27,7 +28,7 @@ case class IpLocation(
                        continent: Option[String])
 
 // MaxMind
-import com.maxmind.geoip2.model.OmniResponse
+import com.maxmind.geoip2.model.CityResponse
 
 /**
  * Companion object to help convert MaxMind OmniResponse to IpLocation
@@ -48,7 +49,7 @@ object IpLocation {
   /**
    * Constructs an IpLocation from a MaxMind Location
    */
-  def apply(omni: OmniResponse): IpLocation = new IpLocation(
+  def apply(omni: CityResponse): IpLocation = new IpLocation(
     if (omni.getCountry != null) Option(omni.getCountry.getIsoCode) else None,
     if (omni.getCountry != null) Option(omni.getCountry.getName) else None,
     if (omni.getMostSpecificSubdivision != null) Option(omni.getMostSpecificSubdivision.getName) else None,
