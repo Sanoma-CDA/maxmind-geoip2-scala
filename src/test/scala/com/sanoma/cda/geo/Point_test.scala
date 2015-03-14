@@ -14,7 +14,7 @@ package com.sanoma.cda.geo
 
 import org.scalatest.FunSuite
 import org.scalatest.prop.PropertyChecks
-import org.scalatest.matchers.ShouldMatchers._
+import org.scalatest.Matchers._
 
 class Point_test extends FunSuite with PropertyChecks {
 

@@ -14,7 +14,7 @@ package com.sanoma.cda.geoip
 
 import org.scalatest.FunSuite
 import org.scalatest.prop.PropertyChecks
-import org.scalatest.matchers.ShouldMatchers._
+import org.scalatest.Matchers._
 import java.net.InetAddress
 
 import com.sanoma.cda.geo._
@@ -26,9 +26,9 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
 
   test("getInetAddress") {
     val geo = MaxMindIpGeo(MaxMindDB, 0)
-    geo.getInetAddress("123.123.123.123") should be === Some(InetAddress.getByName("123.123.123.123"))
-    geo.getInetAddress("localhost").get.getHostAddress should be === "127.0.0.1"
-    geo.getInetAddress("foo.bar.baz") should be === None
+    geo.getInetAddress("123.123.123.123") shouldBe Some(InetAddress.getByName("123.123.123.123"))
+    geo.getInetAddress("localhost").get.getHostAddress shouldBe "127.0.0.1"
+    geo.getInetAddress("foo.bar.baz") shouldBe None
   }
 
   // This data seemed to work on 2013-11-20... if the MaxMind data changes, these values can change
@@ -84,7 +84,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
   test("getLocationWithoutLruCache") {
     for ((address, expected) <- testData) {
       val geo = MaxMindIpGeo(MaxMindDB, 0, synchronized = false)
-      geo.getLocationWithoutLruCache(address) should be === expected
+      geo.getLocationWithoutLruCache(address) shouldBe expected
     }
   }
 
@@ -93,13 +93,13 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
 
     for (cache <- cacheSize; (address, expected) <- testData) {
       val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = false)
-      geo.getLocationWithLruCache(address) should be === expected
+      geo.getLocationWithLruCache(address) shouldBe expected
     }
 
     // again from the cache
     for (cache <- cacheSize; (address, expected) <- testData) {
       val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = false)
-      geo.getLocationWithLruCache(address) should be === expected
+      geo.getLocationWithLruCache(address) shouldBe expected
     }
   }
 
@@ -108,20 +108,20 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
 
     for (cache <- cacheSize; (address, expected) <- testData) {
       val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = false)
-      geo.getLocation(address) should be === expected
+      geo.getLocation(address) shouldBe expected
     }
 
     // again from the cache
     for (cache <- cacheSize; (address, expected) <- testData) {
       val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = false)
-      geo.getLocation(address) should be === expected
+      geo.getLocation(address) shouldBe expected
     }
   }
 
   test("getLocationWithoutLruCache - sync") {
     for ((address, expected) <- testData) {
       val geo = MaxMindIpGeo(MaxMindDB, 0, synchronized = true)
-      geo.getLocationWithoutLruCache(address) should be === expected
+      geo.getLocationWithoutLruCache(address) shouldBe expected
     }
   }
 
@@ -130,13 +130,13 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
 
     for (cache <- cacheSize; (address, expected) <- testData) {
       val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = true)
-      geo.getLocationWithLruCache(address) should be === expected
+      geo.getLocationWithLruCache(address) shouldBe expected
     }
 
     // again from the cache
     for (cache <- cacheSize; (address, expected) <- testData) {
       val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = true)
-      geo.getLocationWithLruCache(address) should be === expected
+      geo.getLocationWithLruCache(address) shouldBe expected
     }
   }
 
@@ -145,13 +145,13 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
 
     for (cache <- cacheSize; (address, expected) <- testData) {
       val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = true)
-      geo.getLocation(address) should be === expected
+      geo.getLocation(address) shouldBe expected
     }
 
     // again from the cache
     for (cache <- cacheSize; (address, expected) <- testData) {
       val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = true)
-      geo.getLocation(address) should be === expected
+      geo.getLocation(address) shouldBe expected
     }
   }
 
@@ -171,11 +171,11 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
       continent = Some("Europe")
     ))
 
-    geo.getLocation("213.52.50.8") should be === expected
+    geo.getLocation("213.52.50.8") shouldBe expected
 
     // others should still be fine:
     for ((address, expected) <- testData.filterKeys{k => k != "213.52.50.8"}) {
-      geo.getLocationWithoutLruCache(address) should be === expected
+      geo.getLocationWithoutLruCache(address) shouldBe expected
     }
   }
 }

@@ -14,22 +14,22 @@ package com.sanoma.cda.geo
 
 import org.scalatest.FunSuite
 import org.scalatest.prop.PropertyChecks
-import org.scalatest.matchers.ShouldMatchers._
+import org.scalatest.Matchers._
 
 class GeoArea_test extends FunSuite with PropertyChecks {
 
   test("simple rectangle") {
     val rect = Polygon(List((0,0), (1,0), (1,1), (0,1)))
-    rect.contains((0.5, 0.5)) should be === true
-    rect.contains((0, 0)) should be === true
-    rect.contains((1, 0)) should be === false // really?
-    rect.contains((1, 1)) should be === false
-    rect.contains((0, 1)) should be === false // really?
+    rect.contains((0.5, 0.5)) shouldBe true
+    rect.contains((0, 0)) shouldBe true
+    rect.contains((1, 0)) shouldBe false // really?
+    rect.contains((1, 1)) shouldBe false
+    rect.contains((0, 1)) shouldBe false // really?
 
-    rect.contains((0.5, 0.0)) should be === true
-    rect.contains((1.0, 0.5)) should be === false
-    rect.contains((0.5, 1.0)) should be === false
-    rect.contains((0.0, 0.5)) should be === true
+    rect.contains((0.5, 0.0)) shouldBe true
+    rect.contains((1.0, 0.5)) shouldBe false
+    rect.contains((0.5, 1.0)) shouldBe false
+    rect.contains((0.0, 0.5)) shouldBe true
   }
 
   test("multiple rectangles") {
@@ -40,7 +40,7 @@ class GeoArea_test extends FunSuite with PropertyChecks {
       Polygon(List((1,0), (2,0), (2,1), (1,1)))  // 4
     )
     val answers = List(false, false, true, false)
-    rects.map{r => r.contains((1.0, 1.0))} should be === answers
+    rects.map{r => r.contains((1.0, 1.0))} shouldBe answers
   }
 
   test("circle creation with 2 points") {
@@ -53,8 +53,8 @@ class GeoArea_test extends FunSuite with PropertyChecks {
     val testDist = 5000.0
     val points2 = pointsAtDistanceWithSameLongitude(Point(60.17, 24.94), testDist)
     val c0 = Circle(Point(60.17, 24.94), points2(0))
-    c0.center should be === Point(60.17, 24.94)
-    (math.abs(c0.radius_m - testDist) < (0.00001 * testDist)) should be === true
+    c0.center shouldBe Point(60.17, 24.94)
+    (math.abs(c0.radius_m - testDist) < (0.00001 * testDist)) shouldBe true
   }
 
   test("circle simple inclusion") {
@@ -62,8 +62,8 @@ class GeoArea_test extends FunSuite with PropertyChecks {
     val tamminiemi = Point(60.1892,24.8838)
     val mantyniemi = Point(60.1844,24.8968)
     val hCircle = Circle(helsinki, 3500) // 3.5km around Helsinki
-    hCircle.contains(mantyniemi) should be === true
-    hCircle.contains(tamminiemi) should be === false
+    hCircle.contains(mantyniemi) shouldBe true
+    hCircle.contains(tamminiemi) shouldBe false
   }
 
   test("circle bounding box inclusion") {
@@ -71,34 +71,34 @@ class GeoArea_test extends FunSuite with PropertyChecks {
     val tamminiemi = Point(60.1892,24.8838)
     val mantyniemi = Point(60.1844,24.8968)
     val hCircle = Circle(helsinki, 3500) // 3.5km around Helsinki
-    hCircle.mayContain(mantyniemi) should be === true
-    hCircle.mayContain(tamminiemi) should be === true
+    hCircle.mayContain(mantyniemi) shouldBe true
+    hCircle.mayContain(tamminiemi) shouldBe true
   }
 
   test("Polygon creation") {
     val p1 = Polygon(List((0,0), (1,0), (1,1), (0,1)))
     val p2 = Polygon(List((0,0), (1,0), (1,1), (0,1), (0,0)))
-    p1 should be === p2
+    p1 shouldBe p2
   }
 
   test("polygon simple inclusion") {
     val poly = Polygon(List((-2.0, -2.0), (1.0,5.0), (4.0, 1.0)))
-    poly.contains((0, 0)) should be === true
-    poly.contains((10, 10)) should be === false
+    poly.contains((0, 0)) shouldBe true
+    poly.contains((10, 10)) shouldBe false
   }
 
   test("Polygon bounding box inclusion") {
     val poly = Polygon(List((-2.0, -2.0), (1.0,5.0), (4.0, 1.0)))
-    poly.mayContain((0,0)) should be === true
-    poly.mayContain((-2,-2)) should be === true
-    poly.mayContain((-2,5)) should be === true
-    poly.mayContain((4, 5)) should be === true
-    poly.mayContain((4,-2)) should be === true
+    poly.mayContain((0,0)) shouldBe true
+    poly.mayContain((-2,-2)) shouldBe true
+    poly.mayContain((-2,5)) shouldBe true
+    poly.mayContain((4, 5)) shouldBe true
+    poly.mayContain((4,-2)) shouldBe true
 
-    poly.mayContain((-2.1,-2.1)) should be === false
-    poly.mayContain((-2.1,5.1)) should be === false
-    poly.mayContain((4.1, 5.1)) should be === false
-    poly.mayContain((4.1,-2.1)) should be === false
+    poly.mayContain((-2.1,-2.1)) shouldBe false
+    poly.mayContain((-2.1,5.1)) shouldBe false
+    poly.mayContain((4.1, 5.1)) shouldBe false
+    poly.mayContain((4.1,-2.1)) shouldBe false
   }
 
   test("Circle2Polygon") {
@@ -106,13 +106,13 @@ class GeoArea_test extends FunSuite with PropertyChecks {
     val hCircle = Circle(helsinki, 3500) // 3.5km around Helsinki
     for (segments <- 3 to 60 by 5) {
       val polyCircle = Circle.circle2Polygon(hCircle, segments)
-      polyCircle.points.map{t => math.abs(funcs.distanceHaversine(helsinki, t) - 3500) < 0.001}.reduce(_ && _) should be === true
+      polyCircle.points.map{t => math.abs(funcs.distanceHaversine(helsinki, t) - 3500) < 0.001}.reduce(_ && _) shouldBe true
     }
 
     for (distances <- (10 to 1000 by 10) ++ (1000 to 500000 by 10000)) {
       val hCircle = Circle(helsinki, distances) // ??km around Helsinki
       val polyCircle = Circle.circle2Polygon(hCircle, 60)
-      polyCircle.points.map{t => math.abs(funcs.distanceHaversine(helsinki, t) - distances) < 0.001}.reduce(_ && _) should be === true
+      polyCircle.points.map{t => math.abs(funcs.distanceHaversine(helsinki, t) - distances) < 0.001}.reduce(_ && _) shouldBe true
     }
   }
 }

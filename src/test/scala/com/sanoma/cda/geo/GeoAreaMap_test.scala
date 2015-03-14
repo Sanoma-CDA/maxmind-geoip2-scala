@@ -14,7 +14,7 @@ package com.sanoma.cda.geo
 
 import org.scalatest.FunSuite
 import org.scalatest.prop.PropertyChecks
-import org.scalatest.matchers.ShouldMatchers._
+import org.scalatest.Matchers._
 
 class GeoAreaMap_test extends FunSuite with PropertyChecks {
 
@@ -25,11 +25,11 @@ class GeoAreaMap_test extends FunSuite with PropertyChecks {
       "2" -> Polygon(List((0,0), (1,0), (1,1), (0,1)))
     )
     val gmap0 = GeoAreaMap.fromSeq(data)
-    gmap0.get((0.5, 0.5)) should be === Some("0")
+    gmap0.get((0.5, 0.5)) shouldBe Some("0")
 
     val prio = Map("1" -> 5.0, "2" -> 2.0).withDefaultValue(0.0)
     val gmap1 = GeoAreaMap.fromSeq(data, prio)
-    gmap1.get((0.5, 0.5)) should be === Some("1")
+    gmap1.get((0.5, 0.5)) shouldBe Some("1")
   }
 
   test("Map findOne") {
@@ -45,8 +45,8 @@ class GeoAreaMap_test extends FunSuite with PropertyChecks {
     val data = List("tamminiemi" -> tCircle, "helsinki" -> hCircle, "airport" -> aPoly, "hRect" -> hRectangle)
     val gmap = GeoAreaMap.fromSeq(data)
 
-    gmap.get(turku) should be === None
-    gmap.get(mantyniemi) should be === Some("tamminiemi")
+    gmap.get(turku) shouldBe None
+    gmap.get(mantyniemi) shouldBe Some("tamminiemi")
   }
 
   test("Map findMany") {
@@ -62,8 +62,8 @@ class GeoAreaMap_test extends FunSuite with PropertyChecks {
     val data = List("tamminiemi" -> tCircle, "helsinki" -> hCircle, "airport" -> aPoly, "hRect" -> hRectangle)
     val gmap = GeoAreaMap.fromSeq(data)
 
-    gmap.getAll(turku) should be === List()
-    gmap.getAll(mantyniemi) should be === List("tamminiemi", "helsinki", "hRect")
+    gmap.getAll(turku) shouldBe List()
+    gmap.getAll(mantyniemi) shouldBe List("tamminiemi", "helsinki", "hRect")
   }
 
 
@@ -84,13 +84,13 @@ class GeoAreaMap_test extends FunSuite with PropertyChecks {
     }
     val geoMap = GeoAreaMap.fromStrIter(strs.toIterator, parser)
 
-    geoMap.get((0.5, 0.5)) should be === Some("1")
-    geoMap.get((1.0, 1.0)) should be === Some("3")
-    geoMap.get((10.0, 10.0)) should be === None
+    geoMap.get((0.5, 0.5)) shouldBe Some("1")
+    geoMap.get((1.0, 1.0)) shouldBe Some("3")
+    geoMap.get((10.0, 10.0)) shouldBe None
     // They should still be the same... (had a bug here once
-    geoMap.get((0.5, 0.5)) should be === Some("1")
-    geoMap.get((1.0, 1.0)) should be === Some("3")
-    geoMap.get((10.0, 10.0)) should be === None
+    geoMap.get((0.5, 0.5)) shouldBe Some("1")
+    geoMap.get((1.0, 1.0)) shouldBe Some("3")
+    geoMap.get((10.0, 10.0)) shouldBe None
   }
 
   test("GeoAreaMap reading from file") {
@@ -106,9 +106,9 @@ class GeoAreaMap_test extends FunSuite with PropertyChecks {
     }
     val geoMap = GeoAreaMap.fromFile(file, parser)
 
-    geoMap.get((0.5, 0.5)) should be === Some("1")
-    geoMap.get((1.0, 1.0)) should be === Some("3")
-    geoMap.get((10.0, 10.0)) should be === None
+    geoMap.get((0.5, 0.5)) shouldBe Some("1")
+    geoMap.get((1.0, 1.0)) shouldBe Some("3")
+    geoMap.get((10.0, 10.0)) shouldBe None
   }
 
 }
