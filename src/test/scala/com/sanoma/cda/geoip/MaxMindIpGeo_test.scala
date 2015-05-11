@@ -50,8 +50,8 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
         countryName = Some("United Kingdom"),
         region = Some("Cambridgeshire"),
         city = Some("Cambridge"),
-        geoPoint = Some(Point(52.2, 0.1167)),
-        postalCode = None,
+        geoPoint = Some(Point(52.2093, 0.1482)),
+        postalCode = Some("CB2"),
         continent = Some("Europe")
       )),
 
@@ -155,10 +155,18 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
     }
   }
 
-  test("geo point black list") {
+  test("postfilter - geo point black list") {
     // blacklist the first geo coordinate:
-    // (62,10)
-    val geo = MaxMindIpGeo(MaxMindDB, 0, synchronized = false, Set(Point(59.95,10.75)))
+    // (59.95,10.75)
+    def removeBlacklistedLocations(loc: IpLocation) = {
+      val geoPointBlacklist = Set(Point(59.95,10.75))
+      loc.geoPoint match {
+        case Some(p) if geoPointBlacklist.contains(p) => Some(loc.copy(geoPoint = None))
+        case _ => Some(loc)
+      }
+    }
+
+    val geo = MaxMindIpGeo(MaxMindDB, 0, synchronized = false, Some(removeBlacklistedLocations))
 
     // check the changed
     val expected = Some(IpLocation(
@@ -178,4 +186,21 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
       geo.getLocationWithoutLruCache(address) shouldBe expected
     }
   }
+
+  test("postfilter - None if no city") {
+    // Check the city, if it's missing then throw away everything
+    def noneIfNoCity(loc: IpLocation) = {
+      loc.city match {
+        case Some(c) => Some(loc)
+        case None => None
+      }
+    }
+    val geo = MaxMindIpGeo(MaxMindDB, 0, postFilterIpLocationObject = Some(noneIfNoCity))
+
+    // check the changed
+
+    geo.getLocation("213.52.50.8") shouldBe None
+
+  }
+
 }

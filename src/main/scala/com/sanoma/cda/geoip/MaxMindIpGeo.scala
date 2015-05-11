@@ -32,10 +32,18 @@ import java.net.InetAddress
  * Download the database from http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz
  *
  * Inspired by https://github.com/snowplow/scala-maxmind-geoip
+ *
+ * Note that some of the location are not trustworthy. In some countries, it seems that MaxMind assigns
+ * certain geoPoint to IP addresses that are known to be in the country, but not more accurately.
+ * Seems that you could make a filter based on this accurate location, however, to enable more accurate control,
+ * this was changed to a function that takes in IpLocation and decides what to do with it.
+ *
  * @param dbInputStream The DB file unzipped
  * @param lruCache The Size of the LRU cache
+ * @param synchronized Use synchronized (true) for multithreaded environments
+ * @param postFilterIpLocationObject Optional function that analyzes the IpLocation and possible changes the field values
  */
-class MaxMindIpGeo(dbInputStream: InputStream, lruCache: Int = 10000, synchronized: Boolean = false, geoPointBlacklist: Set[Point] = Set()) {
+class MaxMindIpGeo(dbInputStream: InputStream, lruCache: Int = 10000, synchronized: Boolean = false, postFilterIpLocationObject: Option[(IpLocation) => Option[IpLocation]] = None) {
 
   /**
    * Helper function that turns string into InetAddress
@@ -67,7 +75,7 @@ class MaxMindIpGeo(dbInputStream: InputStream, lruCache: Int = 10000, synchroniz
    * @param address
    * @return Option[com.maxmind.geoip2.model.OmniResponse]
    */
-  def getLocationFromDB(address: String) = try {
+  private def getLocationFromDB(address: String) = try {
     getInetAddress(address).map(maxmind.city(_))
   } catch {
     case _ : Throwable => None // we don't really care about which exception we got
@@ -80,24 +88,19 @@ class MaxMindIpGeo(dbInputStream: InputStream, lruCache: Int = 10000, synchroniz
 
   private val lru = if (lruCache > 0) chooseAndCreateNewLru else null
 
-  // There seem to be lot of IP addresses that give back a location that is definitely wrong
-  // TODO: extend this as if the lat, long is wrong, then other things are probably wrong too
-  def filterBlacklistedCoordinates(loc: IpLocation) = loc.geoPoint match {
-    case Some(p) if geoPointBlacklist.contains(p) => loc.copy(geoPoint = None)
-    case _ => loc
-  }
-
   // define the actual accessor methods
-  def getLocationFiltered(address: String) = getLocationFromDB(address).map(IpLocation(_)).map(filterBlacklistedCoordinates)
-  def getLocationUnfiltered(address: String) = getLocationFromDB(address).map(IpLocation(_))
+  private def getLocationFiltered(address: String): Option[IpLocation] = getLocationUnfiltered(address).flatMap(postFilterIpLocationObject.get)
+  private def getLocationUnfiltered(address: String): Option[IpLocation] = getLocationFromDB(address).map(IpLocation(_))
 
   /**
    * Returns the location of given address directly from DB
    * @param address The IP or host
    * @return Option[IpLocation]
    */
-  val getLocationWithoutLruCache = if (geoPointBlacklist.isEmpty) getLocationUnfiltered _ else getLocationFiltered _
-
+  val getLocationWithoutLruCache = postFilterIpLocationObject match {
+    case Some(filter) => getLocationFiltered _
+    case None => getLocationUnfiltered _
+  }
 
   /**
    * Returns the location of given address from LRU or from DB
@@ -133,8 +136,8 @@ object MaxMindIpGeo {
   /**
    * Alternative constructor, probably the one you are going to use
    */
-  def apply(dbFile: String, lruCache: Int = 10000, synchronized: Boolean = false, geoPointBlacklist: Set[Point] = Set()) = {
-    new MaxMindIpGeo(new FileInputStream(new File(dbFile)), lruCache, synchronized, geoPointBlacklist)
+  def apply(dbFile: String, lruCache: Int = 10000, synchronized: Boolean = false, postFilterIpLocationObject: Option[(IpLocation) => Option[IpLocation]] = None) = {
+    new MaxMindIpGeo(new FileInputStream(new File(dbFile)), lruCache, synchronized, postFilterIpLocationObject)
   }
 
 }

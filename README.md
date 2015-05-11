@@ -15,7 +15,7 @@ I suggest that you clone this repository and publish to local repository to be u
 
 After that, you can use it in your sbt by adding the following dependency:
 
-`libraryDependencies += "com.sanoma.cda" %% "maxmind-geoip2-scala" % "1.3.4"`
+`libraryDependencies += "com.sanoma.cda" %% "maxmind-geoip2-scala" % "1.4.0"`
 
 You should also be able to generate a fat jar with Assembly.
 We chose not to include the data file into the jar as you should update that from time to time.
@@ -42,6 +42,35 @@ import com.sanoma.cda.geoip.MaxMindIpGeo
 val geoIp = MaxMindIpGeo("/data/MaxMind/GeoLite2-City.mmdb", 1000)
 println(geoIp.getLocation("123.123.123.123"))
 ```
+
+If you are going to use this in multithreaded environment (like Spark), then you'd want to use the threaded version:
+
+```scala
+val geoIp = MaxMindIpGeo("/data/MaxMind/GeoLite2-City.mmdb", 1000, synchronized = true)
+```
+
+If you know that the MaxMind Lite database has some problems in the areas that you are interested in, you can specify function that is used to filter the output. Here is an example for filtering out location field from the output:
+
+```scala
+import com.sanoma.cda.geoip.MaxMindIpGeo
+import com.sanoma.cda.geo.Point
+import com.sanoma.cda.geoip.IpLocation
+def checkLatLongAgainsKnownProblem(loc: IpLocation) = {
+  val geoPointBlacklist = Set(Point(39.9289,116.3883)) // we "know" this is never correct
+  loc.geoPoint match {
+    // if we get a location, but it's on black list, we just remove it
+    case Some(p) if geoPointBlacklist.contains(p) => Some(loc.copy(geoPoint = None))
+    case _ => Some(loc)
+  }
+}
+val geoIp = MaxMindIpGeo("/data/MaxMind/GeoLite2-City.mmdb", 1000, postFilterIpLocationObject = Some(checkLatLongAgainsKnownProblem))
+
+// now calling is exactly the same way
+println(geoIp.getLocation("123.123.123.123"))
+```
+
+The postFilter is a function from IpLocation to Option[IpLocation] which means that you can also make it None if you believe that none of the information in it is correct.
+
 
 Geo-package
 ===========

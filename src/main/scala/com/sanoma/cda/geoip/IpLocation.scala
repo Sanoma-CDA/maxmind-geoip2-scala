@@ -21,7 +21,7 @@ import com.sanoma.cda.geo._
 case class IpLocation(
                        countryCode: Option[String],
                        countryName: Option[String],
-                       region: Option[String],
+                       region: Option[String], // should look more into this...
                        city: Option[String],
                        geoPoint: Option[Point],
                        postalCode: Option[String],
