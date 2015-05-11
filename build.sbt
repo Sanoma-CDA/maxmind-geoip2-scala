@@ -1,7 +1,6 @@
 lazy val packageInfo = Seq(
   organization := "com.sanoma.cda",
   name := "maxmind-geoip2-scala",
-  version := "1.3.5"
   version := "1.4.0"
 )
 
