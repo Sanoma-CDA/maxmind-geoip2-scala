@@ -1,16 +1,16 @@
 lazy val packageInfo = Seq(
   organization := "com.sanoma.cda",
   name := "maxmind-geoip2-scala",
-  version := "1.4.0"
+  version := "1.4.1"
 )
 
 lazy val scalaVersions = Seq(
   scalaVersion := "2.11.6",
-  crossScalaVersions := Seq("2.10.5", "2.11.6")
+  crossScalaVersions := Seq("2.10.6", "2.11.7")
 )
 
 val commonBuildLibs = Seq(
-  "com.maxmind.geoip2"  % "geoip2"          % "2.1.0",
+  "com.maxmind.geoip2"  % "geoip2"          % "2.3.1",
   "com.twitter"        %% "util-collection" % "6.23.0"
 )
 val commonTestLibs = Seq(
@@ -31,4 +31,4 @@ lazy val root = (project in file("."))
   )
   .settings(libraryDependencies ++= commonTestLibs)
   .settings(scalacOptions ++= Seq("-feature", "-deprecation"))
-
+  .settings(sanomaSettings: _*)
