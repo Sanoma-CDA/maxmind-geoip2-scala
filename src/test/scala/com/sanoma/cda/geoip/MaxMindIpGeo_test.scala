@@ -155,10 +155,11 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
     }
   }
 
-  test("postfilter - geo point black list") {
+  test("postfilter - Remove point if is' on blacklist") {
+    // create function for mapping/filtering
     // blacklist the first geo coordinate:
     // (59.95,10.75)
-    def removeBlacklistedLocations(loc: IpLocation) = {
+    val removeIncorrectLatLong: MaxMindIpGeo.IpLocationFilter = loc => {
       val geoPointBlacklist = Set(Point(59.95,10.75))
       loc.geoPoint match {
         case Some(p) if geoPointBlacklist.contains(p) => Some(loc.copy(geoPoint = None))
@@ -166,7 +167,8 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
       }
     }
 
-    val geo = MaxMindIpGeo(MaxMindDB, 0, synchronized = false, Some(removeBlacklistedLocations))
+    // Create the geo object with the filter-function
+    val geo = MaxMindIpGeo(MaxMindDB, 0, synchronized = false, removeIncorrectLatLong)
 
     // check the changed
     val expected = Some(IpLocation(
@@ -179,6 +181,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
       continent = Some("Europe")
     ))
 
+    // Use the normal way
     geo.getLocation("213.52.50.8") shouldBe expected
 
     // others should still be fine:
@@ -187,20 +190,48 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
     }
   }
 
+  test("postfilter - Remove point if no city") {
+    // create function for mapping/filtering
+    // Check the city, if it's missing, just throw away the lat,long
+    def noPointIfNoCity(loc: IpLocation) = {
+      loc.city match {
+        case Some(c) => Some(loc)
+        case None => Some(loc.copy(geoPoint = None))
+      }
+    }
+
+    val norwayWithoutLatLong = Some(IpLocation(
+      countryCode = Some("NO"),
+      countryName = Some("Norway"),
+      region = None,
+      city = None,
+      geoPoint = None,
+      postalCode = None,
+      continent = Some("Europe")
+    ))
+
+    // Use the normal way
+    val geo = MaxMindIpGeo(MaxMindDB, 0, postFilterIpLocation = noPointIfNoCity)
+    geo.getLocation("213.52.50.8") shouldBe norwayWithoutLatLong
+
+  }
+
   test("postfilter - None if no city") {
+    // create function for mapping/filtering
     // Check the city, if it's missing then throw away everything
-    def noneIfNoCity(loc: IpLocation) = {
+    val noneIfNoCity: MaxMindIpGeo.IpLocationFilter = loc => {
       loc.city match {
         case Some(c) => Some(loc)
         case None => None
       }
     }
-    val geo = MaxMindIpGeo(MaxMindDB, 0, postFilterIpLocationObject = Some(noneIfNoCity))
 
-    // check the changed
-
+    // Use the normal way
+    val geo = MaxMindIpGeo(MaxMindDB, 0, postFilterIpLocation = noneIfNoCity)
     geo.getLocation("213.52.50.8") shouldBe None
-
+    
   }
+
+
 
 }

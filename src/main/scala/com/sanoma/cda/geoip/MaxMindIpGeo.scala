@@ -41,10 +41,10 @@ import java.net.InetAddress
  * @param dbInputStream The DB file unzipped
  * @param lruCache The Size of the LRU cache
  * @param synchronized Use synchronized (true) for multithreaded environments
- * @param postFilterIpLocationObject Optional function that analyzes the IpLocation and possible changes the field values
+ * @param postFilterIpLocation Optional function that analyzes the IpLocation and possible changes the field values - completely for convenience
  */
-class MaxMindIpGeo(dbInputStream: InputStream, lruCache: Int = 10000, synchronized: Boolean = false, postFilterIpLocationObject: Option[(IpLocation) => Option[IpLocation]] = None) {
-
+class MaxMindIpGeo(dbInputStream: InputStream, lruCache: Int = 10000, synchronized: Boolean = false, postFilterIpLocation: MaxMindIpGeo.IpLocationFilter = MaxMindIpGeo.unitFilter) {
+  
   /**
    * Helper function that turns string into InetAddress
    * @param address The address for lookup. If it looks like IP address, will use it as such. If not, then it will use it as name.
@@ -89,18 +89,13 @@ class MaxMindIpGeo(dbInputStream: InputStream, lruCache: Int = 10000, synchroniz
   private val lru = if (lruCache > 0) chooseAndCreateNewLru else null
 
   // define the actual accessor methods
-  private def getLocationFiltered(address: String): Option[IpLocation] = getLocationUnfiltered(address).flatMap(postFilterIpLocationObject.get)
-  private def getLocationUnfiltered(address: String): Option[IpLocation] = getLocationFromDB(address).map(IpLocation(_))
-
   /**
    * Returns the location of given address directly from DB
    * @param address The IP or host
    * @return Option[IpLocation]
    */
-  val getLocationWithoutLruCache = postFilterIpLocationObject match {
-    case Some(filter) => getLocationFiltered _
-    case None => getLocationUnfiltered _
-  }
+  def getLocationWithoutLruCache(address: String): Option[IpLocation] = getLocationFromDB(address)
+    .map(IpLocation(_)).flatMap(o => postFilterIpLocation(o))
 
   /**
    * Returns the location of given address from LRU or from DB
@@ -128,16 +123,17 @@ class MaxMindIpGeo(dbInputStream: InputStream, lruCache: Int = 10000, synchroniz
 }
 
 
-
 /**
  * Companion object to generate new MaxMindIpGeo instance
  */
 object MaxMindIpGeo {
+  type IpLocationFilter = IpLocation => Option[IpLocation]
+  val unitFilter: IpLocationFilter = ipLocation => Some(ipLocation)
   /**
    * Alternative constructor, probably the one you are going to use
    */
-  def apply(dbFile: String, lruCache: Int = 10000, synchronized: Boolean = false, postFilterIpLocationObject: Option[(IpLocation) => Option[IpLocation]] = None) = {
-    new MaxMindIpGeo(new FileInputStream(new File(dbFile)), lruCache, synchronized, postFilterIpLocationObject)
+  def apply(dbFile: String, lruCache: Int = 10000, synchronized: Boolean = false, postFilterIpLocation: IpLocationFilter = unitFilter) = {
+    new MaxMindIpGeo(new FileInputStream(new File(dbFile)), lruCache, synchronized, postFilterIpLocation)
   }
 
 }
