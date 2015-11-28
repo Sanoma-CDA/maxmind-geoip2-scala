@@ -17,6 +17,22 @@ object Point {
   import language.implicitConversions
   implicit def tuple22Point[A](p: (A, A))(implicit n:Numeric[A]) = new Point(p._1.toDouble, p._2.toDouble)
   implicit def point2Tuple2(p: Point) = (p.latitude, p.longitude)
+
+  // No implicit conversions between Point and Geohash
+  import GeoHash._
+  /**
+   * This creates a new Point by decoding the given Geohash.
+   */
+  def fromGeohash(gh: Geohash) = decode(gh)
+
+  /**
+   * This creates new point using all the full decimals of the decoded geohash.
+   * However, this loses the accuracy information and probably seems too accurate.
+   */
+  def fromGeohashPrecision(gh: Geohash) = {
+    val tmp = decodeFully(gh)
+    Point(tmp._1, tmp._2)
+  }
 }
 
 /**
@@ -31,6 +47,15 @@ object Point {
 case class Point(latitude: Double, longitude: Double){
   import funcs._
   def distanceTo(other: Point) = distanceHaversine(this, other)
+
+  import GeoHash._
+  def geoHash: Geohash = geoHash(12)
+  /**
+   * Create the Geohash with given precision.
+   * @param hashLength The length of desired geohash. Default 12, the most accurate.
+   * @return Geohash
+   */
+  def geoHash(hashLength: Int = 12): Geohash = encode(this, hashLength)
 }
 
 object funcs {

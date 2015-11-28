@@ -15,7 +15,7 @@ I suggest that you clone this repository and publish to local repository to be u
 
 After that, you can use it in your sbt by adding the following dependency:
 
-`libraryDependencies += "com.sanoma.cda" %% "maxmind-geoip2-scala" % "1.5.0"`
+`libraryDependencies += "com.sanoma.cda" %% "maxmind-geoip2-scala" % "1.5.1"`
 
 You should also be able to generate a fat jar with Assembly.
 We chose not to include the data file into the jar as you should update that from time to time.
@@ -107,3 +107,40 @@ gmap.get(mantyniemi) // Some("tamminiemi")
 gmap.getAll(mantyniemi) // List(tamminiemi, helsinki, hRect)
 ```
 
+
+Geohashing
+==========
+Geo-package now contains also basic Geohash encoding and decoding. For more information on Geohash, see https://en.wikipedia.org/wiki/Geohash and http://geohash.org/.
+
+This is how you can use the geohashing functions
+```scala
+import com.sanoma.cda.geo._
+Point(45.0,88.0).geoHash          // "tzyxfrzxuxgz"
+Point(45.0,88.0).geoHash(5)       // "tzyxf"
+Point.fromGeohash("tzyxfrzxu")    // Point(45.0,88.0)
+
+import com.sanoma.cda.geo.GeoHash._
+val p = Point(-53.876953125, -155.91796875)
+val h = encode(p)    // 0w3j7zzzzzzz
+val h6 = encode(p,6) // 0w3j7z
+decode(h)       // Point(-53.8769532,-155.917969)
+decode(h6)      // Point(-53.88,-155.92)
+decodeFully(h6) // (-53.87969970703125,-155.9234619140625,0.00274658203125,0.0054931640625)
+```
+
+About the geohash implementation in this Scala library:
+There are a few libraries for geohashing for different languages. Before this, there was no Scala package around, but there were a few Java-versions which could have been used. Unfortunately many of the packages gave slightly different answers when I tested them. Therefore I ended up writing scala version from scratch.
+Unfortunately, Geohash doesn't seem to have any reliable reference implementation or pseudo code available. This package contains some tests against Geohash.org. After getting frustrated for not being able to match results from geohash.org, this code was mostly rewritten after one of the Python versions. There I noticed that Python and Scala round differently and thus concluded that some of the differences agains geohash.org are due different roundings. But as there is no reference, I chose to continue with the JVM rounding and adjusted the tests.
+Also, it is notable that the geohash.org is clearly wrong in some cases. As an example, geohash.org decodes this http://geohash.org/u26r and http://geohash.org/u26q to the same coordinates, which is clearly wrong.
+
+It also seems that they round coordinates probably wrongly or at least to the way the rounding is specified on the Wikipedia page. See this example:
+```scala
+// Geohash.org decodes "uuxz" to 72.0,45.0
+val full = decodeFully("uuxz") // (71.630859375,44.82421875,0.087890625,0.17578125)
+// latitude should be between these:
+full._1 + full._3 // 71.71875
+full._1 - full._3 // 71.54296875
+// But latitude from geohash.org does not fall in that range 
+```
+
+However, having said all that, this version is also not fully tested. Please do your own testing and create issues if doesn't seem right.

@@ -70,4 +70,11 @@ class Point_test extends FunSuite with PropertyChecks {
     distCheck(distanceHaversine, (turku, helsinki), distAccordingToOnlineConv) should be < 0.00001
   }
 
+  test("geohash conversions") {
+    // Full geohash tests in GeoHash_test.scala
+    tamminiemi.geoHash shouldBe "ud9wqjpgd845"
+    tamminiemi.geoHash(9) shouldBe "ud9wqjpgd"
+    Point.fromGeohash("ud9wqjpgd845") shouldBe tamminiemi
+    Point.fromGeohashPrecision("ud9wqjpgd845") shouldBe Point(60.18920003436506,24.883800018578768)
+  }
 }
