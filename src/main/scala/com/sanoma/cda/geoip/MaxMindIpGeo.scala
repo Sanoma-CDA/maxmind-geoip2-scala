@@ -83,8 +83,8 @@ class MaxMindIpGeo(dbInputStream: InputStream, lruCache: Int = 10000, synchroniz
 
 
   // setup cache
-  def chooseAndCreateNewLru = if (synchronized) new SynchronizedLruMap[String, Option[IpLocation]](lruCache)
-                              else new LruMap[String, Option[IpLocation]](lruCache)
+  def chooseAndCreateNewLru = if (synchronized) new SynchronizedLruMap[String, Option[RichIpLocation]](lruCache)
+                              else new LruMap[String, Option[RichIpLocation]](lruCache)
 
   private val lru = if (lruCache > 0) chooseAndCreateNewLru else null
 
@@ -94,8 +94,8 @@ class MaxMindIpGeo(dbInputStream: InputStream, lruCache: Int = 10000, synchroniz
    * @param address The IP or host
    * @return Option[IpLocation]
    */
-  def getLocationWithoutLruCache(address: String): Option[IpLocation] = getLocationFromDB(address)
-    .map(IpLocation(_)).flatMap(o => postFilterIpLocation(o))
+  def getLocationWithoutLruCache(address: String): Option[RichIpLocation] = getLocationFromDB(address)
+    .map(RichIpLocation(_)).flatMap(o => postFilterIpLocation(o))
 
   /**
    * Returns the location of given address from LRU or from DB
@@ -118,7 +118,7 @@ class MaxMindIpGeo(dbInputStream: InputStream, lruCache: Int = 10000, synchroniz
    * This is the main method that returns the Option[IpLocation] form given IP or host
    * @return The method that provides the IpLocation from given input string representing either IP address or name
    */
-  val getLocation: String => Option[IpLocation] = if (lruCache > 0) getLocationWithLruCache else getLocationWithoutLruCache
+  val getLocation: String => Option[RichIpLocation] = if (lruCache > 0) getLocationWithLruCache else getLocationWithoutLruCache
 
 }
 
@@ -127,7 +127,7 @@ class MaxMindIpGeo(dbInputStream: InputStream, lruCache: Int = 10000, synchroniz
  * Companion object to generate new MaxMindIpGeo instance
  */
 object MaxMindIpGeo {
-  type IpLocationFilter = IpLocation => Option[IpLocation]
+  type IpLocationFilter = RichIpLocation => Option[RichIpLocation]
   val unitFilter: IpLocationFilter = ipLocation => Some(ipLocation)
   /**
    * Alternative constructor, probably the one you are going to use

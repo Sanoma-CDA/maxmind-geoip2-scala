@@ -17,6 +17,16 @@ object Point {
   import language.implicitConversions
   implicit def tuple22Point[A](p: (A, A))(implicit n:Numeric[A]) = new Point(p._1.toDouble, p._2.toDouble)
   implicit def point2Tuple2(p: Point) = (p.latitude, p.longitude)
+  // Doesn't make sense to only have Latitude or Longitude
+  def combineLatLong(lat: Option[Double], lon: Option[Double]) = (lat, lon) match {
+    case (Some(lat), Some(lon)) => Some(Point(lat, lon))
+    case _                      => None
+  }
+
+  /**
+    * Function to convert null: java.lang.Double to None: Option[Double]
+    */
+  def jDoubleOptionify(jd: java.lang.Double): Option[Double] = if (jd == null) None else Some(jd)
 
   // No implicit conversions between Point and Geohash
   import GeoHash._

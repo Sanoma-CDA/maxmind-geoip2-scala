@@ -20,32 +20,4 @@ import com.sanoma.cda.geo._
 
 class IpLocation_test extends FunSuite with PropertyChecks {
 
-  test("jDoubleOptionify") {
-    val jNull: java.lang.Double = null
-    val jNull_expected: Option[Double] = None
-    IpLocation.jDoubleOptionify(jNull) shouldBe jNull_expected
-
-    val jOk: java.lang.Double = 2.5
-    val jOk_expected: Option[Double] = Some(2.5)
-    IpLocation.jDoubleOptionify(jOk) shouldBe jOk_expected
-  }
-
-  test("combineLatLong") {
-    IpLocation.combineLatLong(None, None) shouldBe None
-    IpLocation.combineLatLong(Some(2.5), None) shouldBe None
-    IpLocation.combineLatLong(None, Some(3.6)) shouldBe None
-    IpLocation.combineLatLong(Some(2.5), Some(3.6)) shouldBe Some(Point(2.5, 3.6))
-  }
-
-  test("implicit conversions") {
-    def Point2List(p: Point): List[Double] = List(p.latitude, p.longitude)
-    def Tuple2List(p: (Double, Double)): List[Double] = List(p._1, p._2)
-
-    val p1 = Point(62,10)
-    val t2 = (62.0,10.0)
-
-    Point2List(p1) shouldBe Tuple2List(t2)
-    Point2List(t2) shouldBe Tuple2List(p1)
-  }
-
 }

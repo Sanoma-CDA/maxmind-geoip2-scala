@@ -193,7 +193,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
   test("postfilter - Remove point if no city") {
     // create function for mapping/filtering
     // Check the city, if it's missing, just throw away the lat,long
-    def noPointIfNoCity(loc: IpLocation) = {
+    def noPointIfNoCity(loc: RichIpLocation) = {
       loc.city match {
         case Some(c) => Some(loc)
         case None => Some(loc.copy(geoPoint = None))
