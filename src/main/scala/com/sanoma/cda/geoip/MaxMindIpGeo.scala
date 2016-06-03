@@ -94,7 +94,7 @@ class MaxMindIpGeo(dbInputStream: InputStream, lruCache: Int = 10000, synchroniz
    * @param address The IP or host
    * @return Option[IpLocation]
    */
-  def getLocationWithoutLruCache(address: String): Option[RichIpLocation] = getLocationFromDB(address)
+  def getRichLocationWithoutLruCache(address: String): Option[RichIpLocation] = getLocationFromDB(address)
     .map(RichIpLocation(_)).flatMap(o => postFilterIpLocation(o))
 
   /**
@@ -102,23 +102,28 @@ class MaxMindIpGeo(dbInputStream: InputStream, lruCache: Int = 10000, synchroniz
    * @param address The IP or host
    * @return Option[IpLocation]
    */
-  def getLocationWithLruCache(address: String) = {
+  def getRichLocationWithLruCache(address: String) = {
     lru.get(address) match {
       case Some(loc) => loc
       case None => {
-        val loc = getLocationWithoutLruCache(address)
+        val loc = getRichLocationWithoutLruCache(address)
         lru.put(address, loc)
         loc
       }
     }
   }
 
+  def getLocationWithoutLruCache(address:String) = getRichLocationWithoutLruCache(address).map(IpLocation(_))
+  def getLocationWithLruCache(address: String) = getRichLocationWithLruCache(address).map(IpLocation(_))
+  def getIpLocation(address: String) = getRichLocation(address).map(IpLocation(_))
+
   // finally the method that you are looking for
   /**
    * This is the main method that returns the Option[IpLocation] form given IP or host
    * @return The method that provides the IpLocation from given input string representing either IP address or name
    */
-  val getLocation: String => Option[RichIpLocation] = if (lruCache > 0) getLocationWithLruCache else getLocationWithoutLruCache
+  val getRichLocation: String => Option[RichIpLocation] = if (lruCache > 0) getRichLocationWithLruCache else getRichLocationWithoutLruCache
+  val getLocation: String => Option[IpLocation] = getIpLocation
 
 }
 
