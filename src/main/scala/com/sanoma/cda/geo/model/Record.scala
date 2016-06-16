@@ -1,15 +1,11 @@
 package com.sanoma.cda.geo.model
 
 import scala.collection.JavaConverters._
-import scala.util.Try
-
-
 
 trait JavaUtils {
   implicit class ConvertedMap[A,B](x: java.util.Map[A,B]) {
     def toScalaMap = x.asScala.toMap
   }
-  def nullOption[T](maybeNull: => T): Option[T] = Try(if (maybeNull != null) Some(maybeNull) else None).toOption.flatten
 }
 
 abstract class Record {
@@ -30,7 +26,7 @@ object City extends JavaUtils {
       name       = city.getName,
       geoNameId  = city.getGeoNameId,
       names      = city.getNames.toScalaMap,
-      confidence = nullOption(city.getConfidence)
+      confidence = Option(city.getConfidence()).map(_.toInt)
     )
 }
 
@@ -43,7 +39,7 @@ object Country extends JavaUtils {
       geoNameId  = country.getGeoNameId,
       names      = country.getNames.toScalaMap,
       isoCode    = country.getIsoCode,
-      confidence = nullOption(country.getConfidence)
+      confidence = Option(country.getConfidence).map(_.toInt)
     )
 }
 
@@ -65,7 +61,7 @@ object Postal extends JavaUtils {
   def apply(postal: com.maxmind.geoip2.record.Postal): Postal =
     Postal(
       code       = postal.getCode,
-      confidence = nullOption(postal.getConfidence)
+      confidence = Option(postal.getConfidence).map(_.toInt)
     )
 }
 
@@ -78,6 +74,6 @@ object Subdivision extends JavaUtils {
       geoNameId  = sub.getGeoNameId,
       names      = sub.getNames.toScalaMap,
       isoCode    = sub.getIsoCode,
-      confidence = nullOption(sub.getConfidence)
+      confidence = Option(sub.getConfidence).map(_.toInt)
     )
 }
