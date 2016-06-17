@@ -17,7 +17,8 @@ case class IpLocation(
   city:        Option[String],
   geoPoint:    Option[Point],
   postalCode:  Option[String],
-  continent:   Option[String]
+  continent:   Option[String],
+  metroCode:   Option[Int]
 ) extends LocationLike
 
 object IpLocation {
@@ -29,7 +30,8 @@ object IpLocation {
     richIpLocation.city.map(_.name),
     richIpLocation.geoPoint,
     richIpLocation.postalCode.map(_.code),
-    richIpLocation.continent.map(_.name)
+    richIpLocation.continent.map(_.name),
+    richIpLocation.location.flatMap(_.metroCode)
   )
 
 }
