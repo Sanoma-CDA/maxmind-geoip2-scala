@@ -40,13 +40,13 @@ object IpLocation {
  * Case class to hold the location information from MaxMind.
  */
 case class RichIpLocation(
-  country:      Option[Country],
-  subdivisions: Option[List[Subdivision]], // should look more into this...
-  city:         Option[City],
-  geoPoint:     Option[Point],
-  postalCode:   Option[Postal],
-  continent:    Option[Continent],
-  location:     Option[Location]
+  country:      Option[Country] = None,
+  subdivisions: Option[List[Subdivision]] = None, // should look more into this...
+  city:         Option[City] = None,
+  geoPoint:     Option[Point] = None,
+  postalCode:   Option[Postal] = None,
+  continent:    Option[Continent] = None,
+  location:     Option[Location] = None
 ) extends LocationLike {
 
   def region: Option[Subdivision] = subdivisions.flatMap(_.lastOption)
