@@ -25,7 +25,7 @@ case class Location(
   longitude:         Double      = 0.0,
   metroCode:         Option[Int] = None,
   populationDensity: Option[Int] = None,
-  timeZone:          Option[Int] = None
+  timeZone:          Option[String] = None
 )
 
 object Location extends JavaUtils {
@@ -37,7 +37,7 @@ object Location extends JavaUtils {
       longitude         = Option(location.getLongitude).map(_.toDouble).getOrElse(0.0),
       metroCode         = Option(location.getMetroCode).map(_.toInt),
       populationDensity = Option(location.getPopulationDensity).map(_.toInt),
-      timeZone          = Option(location.getTimeZone).map(_.toInt)
+      timeZone          = Option(location.getTimeZone).map(_.toString)
     )
 }
 
