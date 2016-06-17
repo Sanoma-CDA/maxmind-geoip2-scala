@@ -11,14 +11,14 @@ import collection.JavaConverters._
 abstract class LocationLike
 
 case class IpLocation(
-  countryCode: Option[String],
-  countryName: Option[String],
-  region:      Option[String], // should look more into this...
-  city:        Option[String],
-  geoPoint:    Option[Point],
-  postalCode:  Option[String],
-  continent:   Option[String],
-  metroCode:   Option[Int]
+  countryCode: Option[String] = None,
+  countryName: Option[String] = None,
+  region:      Option[String] = None, // should look more into this...
+  city:        Option[String] = None,
+  geoPoint:    Option[Point] = None,
+  postalCode:  Option[String] = None,
+  continent:   Option[String] = None,
+  metroCode:   Option[Int] = None
 ) extends LocationLike
 
 object IpLocation {
