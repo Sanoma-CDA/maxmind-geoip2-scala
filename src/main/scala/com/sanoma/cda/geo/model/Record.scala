@@ -3,7 +3,7 @@ package com.sanoma.cda.geo.model
 import scala.collection.JavaConverters._
 
 trait JavaUtils {
-  implicit class ConvertedMap[A,B](x: java.util.Map[A,B]) {
+  implicit class ConvertedMap[A, B](x: java.util.Map[A, B]) {
     def toScalaMap = x.asScala.toMap
   }
 }
@@ -18,6 +18,29 @@ trait Confidence {
   val confidence: Option[Int]
 }
 
+case class Location(
+  accuracyRadius:    Option[Int] = None,
+  averageIncome:     Option[Int] = None,
+  latitude:          Double      = 0.0,
+  longitude:         Double      = 0.0,
+  metroCode:         Option[Int] = None,
+  populationDensity: Option[Int] = None,
+  timeZone:          Option[Int] = None
+)
+
+object Location extends JavaUtils {
+  def apply(location: com.maxmind.geoip2.record.Location): Location =
+    Location(
+      accuracyRadius    = Option(location.getAccuracyRadius).map(_.toInt),
+      averageIncome     = Option(location.getAverageIncome).map(_.toInt),
+      latitude          = Option(location.getLatitude).map(_.toDouble).getOrElse(0.0),
+      longitude         = Option(location.getLongitude).map(_.toDouble).getOrElse(0.0),
+      metroCode         = Option(location.getMetroCode).map(_.toInt),
+      populationDensity = Option(location.getPopulationDensity).map(_.toInt),
+      timeZone          = Option(location.getTimeZone).map(_.toInt)
+    )
+}
+
 case class City(name: String, geoNameId: Int, names: Map[String, String], confidence: Option[Int]) extends Record with Confidence
 
 object City extends JavaUtils {
@@ -26,7 +49,7 @@ object City extends JavaUtils {
       name       = city.getName,
       geoNameId  = city.getGeoNameId,
       names      = city.getNames.toScalaMap,
-      confidence = Option(city.getConfidence()).map(_.toInt)
+      confidence = Option(city.getConfidence).map(_.toInt)
     )
 }
 
