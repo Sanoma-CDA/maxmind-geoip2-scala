@@ -41,6 +41,13 @@ class Rectangle(maxLatitude: Double, maxLongitude: Double, minLatitude: Double, 
   override def mayContain(p: Point) = p.latitude >= minLatitude && p.latitude <= maxLatitude && p.longitude >= minLongitude && p.longitude <= maxLongitude
 
   override def getExtremes = List(Point(maxLatitude, maxLongitude), Point(minLatitude, minLongitude))
+
+  def getCorners = List(
+    Point(minLatitude, minLongitude),
+    Point(minLatitude, maxLongitude),
+    Point(maxLatitude, maxLongitude),
+    Point(maxLatitude, minLongitude)
+  )
 }
 
 object Rectangle {
@@ -49,6 +56,7 @@ object Rectangle {
     math.max(lowerLeft.longitude, upperRight.longitude),
     math.min(lowerLeft.latitude, upperRight.latitude),
     math.min(lowerLeft.longitude, upperRight.longitude))
+  def rectangle2Polygon(r: Rectangle): Polygon = Polygon(r.getCorners)
 }
 
 

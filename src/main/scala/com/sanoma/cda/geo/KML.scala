@@ -80,6 +80,7 @@ object KML {
   def geoArea2KMLPlacemark(geo: GeoArea, name: String, height: Double = 0.0, lineColorHex: Option[KMLColor], polyColorHex: Option[KMLColor]): KMLPlacemark = {
     geo match {
       case poly: Polygon => polygon2KMLPlacemark(poly, name, height, lineColorHex, polyColorHex)
+      case rect: Rectangle => polygon2KMLPlacemark(Rectangle.rectangle2Polygon(rect), name, height, lineColorHex, polyColorHex)
       case circle: Circle => polygon2KMLPlacemark(Circle.circle2Polygon(circle, 60), name, height, lineColorHex, polyColorHex)
       case _ => unknownPlacemark
     }
