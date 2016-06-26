@@ -57,6 +57,11 @@ object GeoHash {
     (mid(latI), mid(lonI), latE, lonE)
   }
 
+  def geoHash2Rectangle(geohash: Geohash): Rectangle = {
+    val (latMid, lonMid, latE, lonE) = decodeFully(geohash)
+    new Rectangle(latMid + latE, lonMid + lonE, latMid - latE, lonMid - lonE)
+  }
+
   /**
    * This rounds the coordinates to desired precision. See wikipedia for rounding.
    * @param x Value to round
@@ -130,4 +135,30 @@ object GeoHash {
     geohash.toString
   }
 
+  /**
+    * This function just returns the longest common prefix of the sequence of strings.
+    * @param strs Sequence of the strings
+    * @return The longest common prefix
+    */
+  def longestCommonPrefix(strs: Seq[String]): String = {
+    val charA = strs.map(_.toCharArray)
+    val maxLength = charA.map(_.length).min
+    (0 until maxLength).view
+      .map{i => charA.map(_(i)).toSet}
+      .takeWhile(_.size == 1)
+      .map(_.head).mkString
+  }
+
+  /**
+    * This tries to find the smallest geohash that contains all the points.
+    * It does it by encoding all points to highest precision and looks for the
+    * longest common prefix of the geohash. However, due the way geohash is calculated
+    * this may return very large areas. If this is long or "accurate", the points are all
+    * in close proximity. However, this may be very large area even if the points are
+    * all from very small region that happens to cross large geohash borders.
+    * @param points List of points
+    * @return The smalles common Geohash
+    */
+  def smallestCommonGeohash(points: Seq[Point]): Geohash =
+    longestCommonPrefix(points.map(p => encode(p)))
 }

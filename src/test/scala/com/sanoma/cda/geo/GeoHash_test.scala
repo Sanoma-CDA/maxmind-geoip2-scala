@@ -198,4 +198,43 @@ class GeoHash_test extends FunSuite with PropertyChecks {
     }
   }
 
+  test("test longest common prefix") {
+    val strs1 = List("interspecies","interstellar","interstate")
+    val expected1 = "inters"
+    longestCommonPrefix(strs1) shouldBe expected1
+
+    val strs2 = List("foobar", "foobar")
+    val expected2 = "foobar"
+    longestCommonPrefix(strs2) shouldBe expected2
+
+    val strs3 = List("foo", "Foo")
+    val expected3 = ""
+    longestCommonPrefix(strs3) shouldBe expected3
+
+    for (r <- 1 to 100){
+      println(r)
+      val commonPrefix = randomHash(7)
+
+      val hashes = (1 to 20).map(i => commonPrefix + i + randomHash(3))
+      longestCommonPrefix(hashes) shouldBe commonPrefix
+    }
+
+  }
+
+
+  test("smallesCommonGeohash") {
+    val commonPrefix = randomHash(6)
+    def randHash(seed: Int) = {
+      commonPrefix + seed + randomHash(2 + rand.nextInt(4))
+    }
+
+    val hashes = (1 to 20).map(i => randHash(i))
+    val points = hashes.map{h =>
+      val (latMid, lonMid, latE, lonE) = decodeFully(h)
+      Point(latMid, lonMid)
+    }
+
+    smallestCommonGeohash(points) shouldBe commonPrefix
+  }
+
 }
