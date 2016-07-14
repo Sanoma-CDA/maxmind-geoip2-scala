@@ -77,4 +77,33 @@ class Point_test extends FunSuite with PropertyChecks {
     Point.fromGeohash("ud9wqjpgd845") shouldBe tamminiemi
     Point.fromGeohashPrecision("ud9wqjpgd845") shouldBe Point(60.18920003436506,24.883800018578768)
   }
+
+  test("jDoubleOptionify") {
+    val jNull: java.lang.Double = null
+    val jNull_expected: Option[Double] = None
+    Point.jDoubleOptionify(jNull) shouldBe jNull_expected
+
+    val jOk: java.lang.Double = 2.5
+    val jOk_expected: Option[Double] = Some(2.5)
+    Point.jDoubleOptionify(jOk) shouldBe jOk_expected
+  }
+
+  test("combineLatLong") {
+    Point.combineLatLong(None, None) shouldBe None
+    Point.combineLatLong(Some(2.5), None) shouldBe None
+    Point.combineLatLong(None, Some(3.6)) shouldBe None
+    Point.combineLatLong(Some(2.5), Some(3.6)) shouldBe Some(Point(2.5, 3.6))
+  }
+
+  test("implicit conversions") {
+    def Point2List(p: Point): List[Double] = List(p.latitude, p.longitude)
+    def Tuple2List(p: (Double, Double)): List[Double] = List(p._1, p._2)
+
+    val p1 = Point(62,10)
+    val t2 = (62.0,10.0)
+
+    Point2List(p1) shouldBe Tuple2List(t2)
+    Point2List(t2) shouldBe Tuple2List(p1)
+  }
+
 }

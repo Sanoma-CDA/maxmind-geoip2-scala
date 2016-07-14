@@ -17,6 +17,7 @@ import org.scalatest.prop.PropertyChecks
 import org.scalatest.Matchers._
 import java.net.InetAddress
 
+import com.maxmind.geoip2.record.Country
 import com.sanoma.cda.geo._
 
 class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
@@ -61,7 +62,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
         countryName = Some("United States"),
         region = None,
         city = None,
-        geoPoint = Some(Point(38.0, -97.0)),
+        geoPoint = Some(Point(37.751,-97.822)),
         postalCode = None,
         continent = Some("North America")
       )),
@@ -72,7 +73,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
         countryName = Some("United Kingdom"),
         region = None,
         city = None,
-        geoPoint = Some(Point(51.5, -0.13)),
+        geoPoint = Some(Point(51.4964,-0.1224)),
         postalCode = None,
         continent = Some("Europe")
       )),
@@ -93,7 +94,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
 
     for (cache <- cacheSize; (address, expected) <- testData) {
       val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = false)
-      geo.getLocationWithLruCache(address) shouldBe expected
+      geo.getLocationWithLruCache(address)shouldBe expected
     }
 
     // again from the cache
@@ -193,7 +194,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
   test("postfilter - Remove point if no city") {
     // create function for mapping/filtering
     // Check the city, if it's missing, just throw away the lat,long
-    def noPointIfNoCity(loc: IpLocation) = {
+    def noPointIfNoCity(loc: RichIpLocation) = {
       loc.city match {
         case Some(c) => Some(loc)
         case None => Some(loc.copy(geoPoint = None))
