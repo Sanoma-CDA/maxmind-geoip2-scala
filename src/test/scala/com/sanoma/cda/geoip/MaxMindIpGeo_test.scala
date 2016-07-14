@@ -61,7 +61,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
         countryName = Some("United States"),
         region = None,
         city = None,
-        geoPoint = Some(Point(38.0, -97.0)),
+        geoPoint = Some(Point(37.751,-97.822)),
         postalCode = None,
         continent = Some("North America")
       )),
@@ -72,7 +72,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
         countryName = Some("United Kingdom"),
         region = None,
         city = None,
-        geoPoint = Some(Point(51.5, -0.13)),
+        geoPoint = Some(Point(51.4964,-0.1224)),
         postalCode = None,
         continent = Some("Europe")
       )),
