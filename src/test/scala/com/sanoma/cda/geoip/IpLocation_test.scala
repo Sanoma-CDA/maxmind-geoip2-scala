@@ -20,16 +20,6 @@ import com.sanoma.cda.geo._
 
 class IpLocation_test extends FunSuite with PropertyChecks {
 
-  test("jDoubleOptionify") {
-    val jNull: java.lang.Double = null
-    val jNull_expected: Option[Double] = None
-    IpLocation.jDoubleOptionify(jNull) shouldBe jNull_expected
-
-    val jOk: java.lang.Double = 2.5
-    val jOk_expected: Option[Double] = Some(2.5)
-    IpLocation.jDoubleOptionify(jOk) shouldBe jOk_expected
-  }
-
   test("combineLatLong") {
     IpLocation.combineLatLong(None, None) shouldBe None
     IpLocation.combineLatLong(Some(2.5), None) shouldBe None

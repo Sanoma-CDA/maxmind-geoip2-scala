@@ -42,20 +42,15 @@ object IpLocation {
   }
 
   /**
-   * Function to convert null: java.lang.Double to None: Option[Double]
-   */
-  def jDoubleOptionify(jd: java.lang.Double): Option[Double] = if (jd == null) None else Some(jd)
-
-  /**
    * Constructs an IpLocation from a MaxMind Location
    */
   def apply(omni: CityResponse): IpLocation = new IpLocation(
-    if (omni.getCountry != null) Option(omni.getCountry.getIsoCode) else None,
-    if (omni.getCountry != null) Option(omni.getCountry.getName) else None,
-    if (omni.getMostSpecificSubdivision != null) Option(omni.getMostSpecificSubdivision.getName) else None,
-    if (omni.getCity != null) Option(omni.getCity.getName) else None,
-    if (omni.getLocation != null) combineLatLong(jDoubleOptionify(omni.getLocation.getLatitude), jDoubleOptionify(omni.getLocation.getLongitude)) else None,
-    if (omni.getPostal != null) Option(omni.getPostal.getCode) else None,
-    if (omni.getContinent != null) Option(omni.getContinent.getName) else None
+    Option(omni.getCountry).map(_.getIsoCode),
+    Option(omni.getCountry).map(_.getName),
+    Option(omni.getMostSpecificSubdivision).map(_.getName),
+    Option(omni.getCity).map(_.getName),
+    Option(omni.getLocation).flatMap { location => combineLatLong(Option(location.getLatitude), Option(location.getLongitude)) },
+    Option(omni.getPostal).map(_.getCode),
+    Option(omni.getContinent).map(_.getName)
   )
 }
