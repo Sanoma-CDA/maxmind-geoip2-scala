@@ -12,8 +12,6 @@
  */
 package com.sanoma.cda.geoip
 
-import com.sanoma.cda.geo._
-
 // Import MaxMind
 import com.maxmind.geoip2.DatabaseReader
 

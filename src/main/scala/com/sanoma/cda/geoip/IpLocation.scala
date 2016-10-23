@@ -12,7 +12,6 @@
  */
 package com.sanoma.cda.geoip
 
-import com.maxmind.geoip2.model.CityResponse
 import com.sanoma.cda.geo._
 
 /**
