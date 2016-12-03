@@ -144,3 +144,64 @@ full._1 - full._3 // 71.54296875
 ```
 
 However, having said all that, this version is also not fully tested. Please do your own testing and create issues if doesn't seem right.
+
+
+Geo-privacy
+===========
+This library is built to make it easier to handle location information in your Scala apps. Location from IP addresses is really not that accurate at all. However,
+we realize that you might want to use the geo-pakage with data that originates from GPS or another very accurate source. Location has special properties from
+the privacy point of view. We want to be careful about it. Therefore the Geo-package now contains also some functions that can be used to obfuscate the location.
+These do not at the moment directly link into the API, but are rather provided as tools for you to build your own privacy enabling processing.
+
+Location privacy can be controlled by:
+# Regulatory strategies. Local legistation.
+# Privacy policies. Agreements between the user and the service provider.
+# Anonymity. Using pseudonyms or no user ID, even grouping with other people
+# Obfuscation. Reducing the quality of the location data
+## Spatial obfuscation
+## Temporal obfuscation
+
+
+We suggest that you look up the local legislation on the subject of collecting and using location data. We also suggest that you create privacy policies that give a clear picture of what you are doing and why. Anonymity is easy to achieve by leaving the user ID out of the location data completely, or replacing it with pseudonym that is changing reasonably often and therefore preventing long history of accurate user data that can be exploited. However, in many use cases, the user ID must be sent (even for other reasons). Therefore we offer some tools here to build obfuscation by reducing the accuracy of the location data.
+
+One way to reduce threats to location privacy is to degrade the location information. This can be done by deliberately making the measurements inaccurate either by time or location. You can do temporal obfuscation by not sending the data at the real time it happened or not sending all location samples that you have in possession. Both of these confuse the location tracking. However, again, there are use cases where this is not possible and it is desired that the location is sent in real-time when it happens and always when it happens.
+
+This package provides some tools to implement a system to degrade the spatial resolution of the location data and at the same time keeping it useable. What is right for you depends on your use case. Some ways to do this is to take the original accurate location latitude and longitude and
+# add noise to the location sample
+# discretize the location
+
+```
+import com.sanoma.cda.geo.GeoPrivacy._
+import com.sanoma.cda.geo.Point
+
+val p1 = Point(1.234567, 3.4567890)
+
+discretized(2)(p1)
+//res0: com.sanoma.cda.geo.Point = Point(1.23,3.46)
+
+discretizeWithGeoHash(4)(p1)
+//res1: com.sanoma.cda.geo.Point = Point(1.3,3.3)
+
+val p2 = Point(1.2, 3.4)
+
+additiveNoise(0.1, 0.1)(p2)
+//res2: com.sanoma.cda.geo.Point = Point(1.1823078703924625,3.3437801109342113)
+
+additiveGaussianNoise(0.1)(p2)
+//res3: com.sanoma.cda.geo.Point = Point(2.840384703243872,3.645329855740045)
+
+additiveNoiseMeters(1000, 1000)(p2)
+//res4: com.sanoma.cda.geo.Point = Point(1.191361905326558,3.397642243829406)
+
+additiveGaussianNoiseMeters(1000)(p2)
+//res5: com.sanoma.cda.geo.Point = Point(0.01836072122964682,3.8600476824031116)
+
+
+```
+# Add gaussian noise with for example std of 1km to the accurate location
+# Discretize the location by rounding the latitude and longitude to fewer decimals
+# Or just return the suitable size geohash of the location
+
+There is also k-anonymity function. There you would return the smallest geohash that contains at least k-people in it. This is not implemented yet here.
+Some considerations on this. We need to define a time period and do sliding windows over time. This costs memory as it would need to be calculated for multiple of the smallest
+desired geohashes (that can then be combined).

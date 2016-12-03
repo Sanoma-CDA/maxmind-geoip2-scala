@@ -46,7 +46,36 @@ object Point {
  */
 case class Point(latitude: Double, longitude: Double){
   import funcs._
+
+  /**
+    * Distance to another point
+    * @param other
+    * @return distance in meters
+    */
   def distanceTo(other: Point) = distanceHaversine(this, other)
+
+  /**
+    * Creates a new point using given offset in degrees.
+    * @param latitudeOffset
+    * @param longitudeOffset
+    * @return New point
+    */
+  def offsetDegrees(latitudeOffset: Double = 0.0, longitudeOffset: Double = 0.0) =
+    Point(this.latitude + latitudeOffset, this.longitude + longitudeOffset)
+
+  /**
+    * Creates a new point that has been offset from the original one using meters.
+    * Note: this moves the point given number of meters along both of the axis separately.
+    * Uses simple algorithm that works ok for short distances.
+    * @param latitudeOffsetMeters
+    * @param longitudeOffsetMeters
+    * @return New point
+    */
+  def offsetMeters(latitudeOffsetMeters: Double = 0.0, longitudeOffsetMeters: Double = 0.0) = {
+    val latOffsetDeg = if (latitudeOffsetMeters == 0.0) 0.0 else latitudeOffsetInDeg(latitudeOffsetMeters)
+    val longOffsetDeg = if (longitudeOffsetMeters == 0.0) 0.0 else longitudeOffsetInDeg(this.latitude, longitudeOffsetMeters)
+    this.offsetDegrees(latOffsetDeg, longOffsetDeg)
+  }
 
   import GeoHash._
   def geoHash: Geohash = geoHash(12)
@@ -59,7 +88,7 @@ case class Point(latitude: Double, longitude: Double){
 }
 
 object funcs {
-  import math.{sin, cos, atan2, pow, toRadians, sqrt}
+  import math.{sin, cos, atan2, pow, toRadians, toDegrees, sqrt}
 
   val EarthRadius = 6371009.0 // meters, http://en.wikipedia.org/wiki/Earth_radius#Mean_radius
 
@@ -96,4 +125,27 @@ object funcs {
     val c = 2 * atan2(sqrt(a), sqrt(1-a))
     EarthRadius * c
   }
+
+  /**
+    * Latitude offset in degrees for given distance
+    * Note: not the most accurate, but fast - usable for short distances
+    *
+    * @param offsetMeters
+    * @return Latitude offset in Degrees
+    */
+  def latitudeOffsetInDeg(offsetMeters: Double) =
+    toDegrees(offsetMeters / EarthRadius)
+
+  /**
+    * Longitude offset in degrees for given distance at given latitude
+    * Note: not the most accurate, but fast - usable for short distances
+    *
+    * @param latitudeDegrees
+    * @param offsetMeters
+    * @return Longitude offset in Degrees
+    */
+  def longitudeOffsetInDeg(latitudeDegrees: Double, offsetMeters: Double) =
+    offsetMeters / ((EarthRadius * math.Pi / 180.0) * cos(toRadians(latitudeDegrees)))
+
+
 }

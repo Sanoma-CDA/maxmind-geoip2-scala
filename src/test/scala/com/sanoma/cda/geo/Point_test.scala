@@ -77,4 +77,39 @@ class Point_test extends FunSuite with PropertyChecks {
     Point.fromGeohash("ud9wqjpgd845") shouldBe tamminiemi
     Point.fromGeohashPrecision("ud9wqjpgd845") shouldBe Point(60.18920003436506,24.883800018578768)
   }
+
+  test("latitudeOffsetInDeg") {
+    import funcs._
+    import math.abs
+    val offsetMeters0 = List(10, 50, 100, 200, 250, 500, 750, 1000, 2000, 5000, 10000, 20000, 50000)
+    val offsetMeters = offsetMeters0 ++ offsetMeters0.map(-_)
+    val offsetDegrees = offsetMeters.map(m => latitudeOffsetInDeg(m))
+    val fromHelsinki = offsetDegrees.map(d => Point(helsinki.latitude + d, helsinki.longitude))
+    val accurate = fromHelsinki.map(p => distanceHaversine(helsinki, p))
+    val errorP = offsetMeters.zip(accurate).map{case (o, n) => abs(abs(o)-n)/abs(o)}
+    errorP.foreach{e => e should be < 0.01}
+  }
+
+  test("longitudeOffsetInDeg") {
+    import funcs._
+    //import com.sanoma.cda.geo.funcs._
+    //import com.sanoma.cda.geo.Point
+    import math.abs
+    val offsetMeters0 = List(10, 50, 100, 200, 250, 500, 750, 1000, 2000, 5000, 10000, 20000, 50000)
+    val offsetMeters = offsetMeters0 ++ offsetMeters0.map(-_)
+    val offsetLatitudes = -89.0 to 89.0 by 1.0
+    val longitude = 24.94
+    val toTest = for (
+      lat <- offsetLatitudes;
+      m <- offsetMeters
+    ) yield (lat, m)
+
+    val errorP = toTest.map{ case (lat, m) =>
+        val offsetDeg = longitudeOffsetInDeg(lat, m)
+        val newPoint = Point(lat, longitude + offsetDeg)
+        val accurate = distanceHaversine(Point(lat, longitude), newPoint)
+      (lat, m, accurate, abs(abs(m) - accurate)/abs(m))
+    }
+    errorP.map(_._4).foreach{e => e should be < 0.01}
+  }
 }
