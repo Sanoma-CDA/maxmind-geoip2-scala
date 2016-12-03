@@ -37,10 +37,10 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
       Some(IpLocation(
         countryCode = Some("NO"),
         countryName = Some("Norway"),
-        region = None,
-        city = None,
-        geoPoint = Some(Point(59.95,10.75)),
-        postalCode = None,
+        region = Some("Oslo County"),
+        city = Some("Oslo"),
+        geoPoint = Some(Point(59.9167,10.75)),
+        postalCode = Some("6455"),
         continent = Some("Europe")
       )),
 
@@ -50,7 +50,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
         countryName = Some("United Kingdom"),
         region = Some("Cambridgeshire"),
         city = Some("Cambridge"),
-        geoPoint = Some(Point(52.2124,0.1534)),
+        geoPoint = Some(Point(52.2,0.1167)),
         postalCode = Some("CB5"),
         continent = Some("Europe")
       )),
@@ -61,7 +61,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
         countryName = Some("United States"),
         region = None,
         city = None,
-        geoPoint = Some(Point(38.0, -97.0)),
+        geoPoint = Some(Point(37.751, -97.822)),
         postalCode = None,
         continent = Some("North America")
       )),
@@ -72,7 +72,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
         countryName = Some("United Kingdom"),
         region = None,
         city = None,
-        geoPoint = Some(Point(51.5, -0.13)),
+        geoPoint = Some(Point(51.4964, -0.1224)),
         postalCode = None,
         continent = Some("Europe")
       )),
@@ -160,7 +160,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
     // blacklist the first geo coordinate:
     // (59.95,10.75)
     val removeIncorrectLatLong: MaxMindIpGeo.IpLocationFilter = loc => {
-      val geoPointBlacklist = Set(Point(59.95,10.75))
+      val geoPointBlacklist = Set(Point(37.751, -97.822))
       loc.geoPoint match {
         case Some(p) if geoPointBlacklist.contains(p) => Some(loc.copy(geoPoint = None))
         case _ => Some(loc)
@@ -172,20 +172,20 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
 
     // check the changed
     val expected = Some(IpLocation(
-      countryCode = Some("NO"),
-      countryName = Some("Norway"),
+      countryCode = Some("US"),
+      countryName = Some("United States"),
       region = None,
       city = None,
       geoPoint = None,
       postalCode = None,
-      continent = Some("Europe")
+      continent = Some("North America")
     ))
 
     // Use the normal way
-    geo.getLocation("213.52.50.8") shouldBe expected
+    geo.getLocation("4.2.2.2") shouldBe expected
 
     // others should still be fine:
-    for ((address, expected) <- testData.filterKeys{k => k != "213.52.50.8"}) {
+    for ((address, expected) <- testData.filterKeys{k => k != "4.2.2.2"}) {
       geo.getLocationWithoutLruCache(address) shouldBe expected
     }
   }
@@ -200,19 +200,19 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
       }
     }
 
-    val norwayWithoutLatLong = Some(IpLocation(
-      countryCode = Some("NO"),
-      countryName = Some("Norway"),
+    val expected = Some(IpLocation(
+      countryCode = Some("US"),
+      countryName = Some("United States"),
       region = None,
       city = None,
       geoPoint = None,
       postalCode = None,
-      continent = Some("Europe")
+      continent = Some("North America")
     ))
 
     // Use the normal way
     val geo = MaxMindIpGeo(MaxMindDB, 0, postFilterIpLocation = noPointIfNoCity)
-    geo.getLocation("213.52.50.8") shouldBe norwayWithoutLatLong
+    geo.getLocation("4.2.2.2") shouldBe expected
 
   }
 
@@ -228,7 +228,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
 
     // Use the normal way
     val geo = MaxMindIpGeo(MaxMindDB, 0, postFilterIpLocation = noneIfNoCity)
-    geo.getLocation("213.52.50.8") shouldBe None
+    geo.getLocation("4.2.2.2") shouldBe None
     
   }
 
