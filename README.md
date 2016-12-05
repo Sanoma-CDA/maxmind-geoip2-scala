@@ -176,7 +176,7 @@ import com.sanoma.cda.geo.Point
 
 val p1 = Point(1.234567, 3.4567890)
 
-discretized(2)(p1)
+discretize(2)(p1)
 //res0: com.sanoma.cda.geo.Point = Point(1.23,3.46)
 
 discretizeWithGeoHash(4)(p1)
@@ -184,17 +184,17 @@ discretizeWithGeoHash(4)(p1)
 
 val p2 = Point(1.2, 3.4)
 
-additiveNoise(0.1, 0.1)(p2)
-//res2: com.sanoma.cda.geo.Point = Point(1.1823078703924625,3.3437801109342113)
+additiveUniformNoise(0.1, 0.1)(p2)
+//res2: com.sanoma.cda.geo.Point = Point(1.2785796832525629,3.497788928956041)
 
 additiveGaussianNoise(0.1)(p2)
-//res3: com.sanoma.cda.geo.Point = Point(2.840384703243872,3.645329855740045)
+//res3: com.sanoma.cda.geo.Point = Point(1.1332416627810706,3.3081027046796434)
 
-additiveNoiseMeters(1000, 1000)(p2)
-//res4: com.sanoma.cda.geo.Point = Point(1.191361905326558,3.397642243829406)
+additiveUniformNoiseMeters(1000, 1000)(p2)
+//res4: com.sanoma.cda.geo.Point = Point(1.1947079935372003,3.3969605065141217)
 
 additiveGaussianNoiseMeters(1000)(p2)
-//res5: com.sanoma.cda.geo.Point = Point(0.01836072122964682,3.8600476824031116)
+//res5: com.sanoma.cda.geo.Point = Point(1.1945165899260433,3.3888928371192066)
 
 
 ```

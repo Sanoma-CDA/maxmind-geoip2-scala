@@ -13,7 +13,7 @@
 package com.sanoma.cda.geo
 
 import com.sanoma.cda.geo.funcs._
-import math.{round, pow}
+import math.{round, pow, abs}
 
 
 /**
@@ -40,7 +40,7 @@ object GeoPrivacy {
     * @param d Original value
     * @return New value
     */
-  def transformRoundAt(decimals: Int)(d: Double) = {
+  def roundAt(decimals: Int)(d: Double) = {
     val s = pow(10, decimals)
     round(d * s) / s
   }
@@ -53,7 +53,7 @@ object GeoPrivacy {
     * @param d Original value
     * @return new value
     */
-  def transformRoundAt(si: Double)(d: Double) = round(d / si) * si
+  def roundAt(si: Double)(d: Double) = round(d / si) * si
 
   /**
     * This function returns new point where the latitude and longitude
@@ -66,13 +66,26 @@ object GeoPrivacy {
     * @param p The original point to be rounded
     * @return The new location Point
     */
-  def discretized(decimals: Int)(p: Point): Point = {
-    val transformLat = transformRoundAt(decimals) _
-    val transformLong = transformRoundAt(decimals) _
+  def discretize(decimals: Int)(p: Point): Point = {
+    val transformLat = roundAt(decimals) _
+    val transformLong = roundAt(decimals) _
     pointTransformerGen(transformLat, transformLong)(p)
   }
 
+  // random generators
   val randGen = new scala.util.Random
+  def randomUniform(min: Double, max: Double): Double = min + (max - min) * randGen.nextDouble
+  def randomNormal(mean: Double, std: Double): Double = mean + std * randGen.nextGaussian
+  def randomTruncatedNormal(mean: Double, std: Double): Double = {
+    @scala.annotation.tailrec
+    def check(g: Double): Double = {
+      if (abs(g) <= 2.0) g // max of 2 x std allowed
+      else check(randGen.nextGaussian)
+    }
+    val n = check(randGen.nextGaussian)
+    mean + std * n
+  }
+
 
   /**
     * Transfer function that adds uniform noise to the value.
@@ -81,8 +94,8 @@ object GeoPrivacy {
     * @param d Original value
     * @return New value
     */
-  def transformUniformNoiseGen(maxDiff: Double)(d: Double): Double =
-    d + 2 * maxDiff * randGen.nextDouble - maxDiff
+  def transformUniformNoise(maxDiff: Double)(d: Double): Double =
+    d + randomUniform(-maxDiff, maxDiff)
 
   /**
     * This function returns a new point where the location has been moved by
@@ -94,9 +107,9 @@ object GeoPrivacy {
     * @param p Original point
     * @return New point
     */
-  def additiveNoise(noiseLatMax: Double, noiseLongMax: Double)(p: Point) = {
-    val transformLat = transformUniformNoiseGen(noiseLatMax) _
-    val transformLong = transformUniformNoiseGen(noiseLongMax) _
+  def additiveUniformNoise(noiseLatMax: Double, noiseLongMax: Double)(p: Point) = {
+    val transformLat = transformUniformNoise(noiseLatMax) _
+    val transformLong = transformUniformNoise(noiseLongMax) _
     pointTransformerGen(transformLat, transformLong)(p)
   }
 
@@ -110,22 +123,21 @@ object GeoPrivacy {
     * @param p Original point
     * @return New point
     */
-  def additiveNoiseMeters(noiseLatMaxMeters: Double, noiseLongMaxMeters: Double)(p: Point) = {
-    val transformLat = transformUniformNoiseGen(latitudeOffsetInDeg(noiseLatMaxMeters)) _
-    val transformLong = transformUniformNoiseGen(longitudeOffsetInDeg(p.latitude, noiseLongMaxMeters)) _
+  def additiveUniformNoiseMeters(noiseLatMaxMeters: Double, noiseLongMaxMeters: Double)(p: Point) = {
+    val transformLat = transformUniformNoise(latitudeOffsetInDeg(noiseLatMaxMeters)) _
+    val transformLong = transformUniformNoise(longitudeOffsetInDeg(p.latitude, noiseLongMaxMeters)) _
     pointTransformerGen(transformLat, transformLong)(p)
   }
 
   /**
     * Transfer function that adds Gaussian noise to the value.
     *
-    * @param mean Mean value of the Gaussian noise
     * @param std Standard deviation of the Gaussian noise to be added
     * @param d Original value
     * @return New value
     */
-  def transformGaussianNoiseGen(mean: Double = 0.0, std: Double = 1.0)(d: Double): Double =
-    d + std * randGen.nextGaussian + mean
+  def transformGaussianNoiseGen(std: Double)(d: Double): Double =
+    d + randomTruncatedNormal(0.0, std)
 
   /**
     * This function returns new point so that the location has been moved by
@@ -136,7 +148,7 @@ object GeoPrivacy {
     * @param p Original point
     * @return New point
     */
-  def additiveGaussianNoise(std: Double = 1.0)(p: Point) = {
+  def additiveGaussianNoise(std: Double)(p: Point) = {
     val transformLat = transformGaussianNoiseGen(std) _
     val transformLong = transformGaussianNoiseGen(std) _
     pointTransformerGen(transformLat, transformLong)(p)
