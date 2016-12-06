@@ -172,7 +172,7 @@ This package provides some tools to implement a system to degrade the spatial re
  * add uniform noise with max offset of 1km to the location sample
  * add gaussian noise with for example std of 1km to the accurate location
 
-```
+```scala
 import com.sanoma.cda.geo.GeoPrivacy._
 import com.sanoma.cda.geo.Point
 
