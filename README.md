@@ -15,7 +15,7 @@ I suggest that you clone this repository and publish to local repository to be u
 
 After that, you can use it in your sbt by adding the following dependency:
 
-`libraryDependencies += "com.sanoma.cda" %% "maxmind-geoip2-scala" % "1.5.1"`
+`libraryDependencies += "com.sanoma.cda" %% "maxmind-geoip2-scala" % "1.5.3"`
 
 You should also be able to generate a fat jar with Assembly.
 We chose not to include the data file into the jar as you should update that from time to time.
@@ -154,12 +154,12 @@ the privacy point of view. We want to be careful about it. Therefore the Geo-pac
 These do not at the moment directly link into the API, but are rather provided as tools for you to build your own privacy enabling processing.
 
 Location privacy can be controlled by:
-# Regulatory strategies. Local legistation.
-# Privacy policies. Agreements between the user and the service provider.
-# Anonymity. Using pseudonyms or no user ID, even grouping with other people
-# Obfuscation. Reducing the quality of the location data
-## Spatial obfuscation
-## Temporal obfuscation
+ * Regulatory strategies. Local legistation.
+ * Privacy policies. Agreements between the user and the service provider.
+ * Anonymity. Using pseudonyms or no user ID, even grouping with other people
+ * Obfuscation. Reducing the quality of the location data
+  * Spatial obfuscation
+  * Temporal obfuscation
 
 
 We suggest that you look up the local legislation on the subject of collecting and using location data. We also suggest that you create privacy policies that give a clear picture of what you are doing and why. Anonymity is easy to achieve by leaving the user ID out of the location data completely, or replacing it with pseudonym that is changing reasonably often and therefore preventing long history of accurate user data that can be exploited. However, in many use cases, the user ID must be sent (even for other reasons). Therefore we offer some tools here to build obfuscation by reducing the accuracy of the location data.
@@ -167,8 +167,10 @@ We suggest that you look up the local legislation on the subject of collecting a
 One way to reduce threats to location privacy is to degrade the location information. This can be done by deliberately making the measurements inaccurate either by time or location. You can do temporal obfuscation by not sending the data at the real time it happened or not sending all location samples that you have in possession. Both of these confuse the location tracking. However, again, there are use cases where this is not possible and it is desired that the location is sent in real-time when it happens and always when it happens.
 
 This package provides some tools to implement a system to degrade the spatial resolution of the location data and at the same time keeping it useable. What is right for you depends on your use case. Some ways to do this is to take the original accurate location latitude and longitude and
-# add noise to the location sample
-# discretize the location
+ * discretize the location by rounding of the degrees
+ * discretize the location using geohash (if you want to match the discretized location to geohash database for example)
+ * add uniform noise with max offset of 1km to the location sample
+ * add gaussian noise with for example std of 1km to the accurate location
 
 ```
 import com.sanoma.cda.geo.GeoPrivacy._
@@ -195,12 +197,7 @@ additiveUniformNoiseMeters(1000, 1000)(p2)
 
 additiveGaussianNoiseMeters(1000)(p2)
 //res5: com.sanoma.cda.geo.Point = Point(1.1945165899260433,3.3888928371192066)
-
-
 ```
-# Add gaussian noise with for example std of 1km to the accurate location
-# Discretize the location by rounding the latitude and longitude to fewer decimals
-# Or just return the suitable size geohash of the location
 
 There is also k-anonymity function. There you would return the smallest geohash that contains at least k-people in it. This is not implemented yet here.
 Some considerations on this. We need to define a time period and do sliding windows over time. This costs memory as it would need to be calculated for multiple of the smallest
