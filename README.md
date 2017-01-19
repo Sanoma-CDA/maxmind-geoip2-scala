@@ -202,3 +202,25 @@ additiveGaussianNoiseMeters(1000)(p2)
 There is also k-anonymity function. There you would return the smallest geohash that contains at least k-people in it. This is not implemented yet here.
 Some considerations on this. We need to define a time period and do sliding windows over time. This costs memory as it would need to be calculated for multiple of the smallest
 desired geohashes (that can then be combined).
+
+
+Coordinate conversions
+======================
+There are now also functions for doing coordinate conversions between GPS coordinates and the Finnish EUREF-FIN projected coordinates (ETRS89-TM35FIN). 
+THe coordinate conversions are not fully integrated into the rest of the library. The library has been very lightweight and does not try to be a full geo-library in any means. Therefore, the Point class for example, does not contain infomration about the coordinate system in it. And mostly you can use just tuples. This may be changed in the future.
+
+This is how you do the coordinate conversions:
+```scala
+import com.sanoma.cda.geo.Point
+import com.sanoma.cda.geo.CoordinateConversions._
+
+val GPS = Point(60.1672065,24.943796)
+// GPS: com.sanoma.cda.geo.Point = Point(60.1672065,24.943796)
+
+val EUREF_FIN = wgs842etrs89tm35fin(GPS)
+// EUREF_FIN: (Double, Double) = (6671809.459860587,385901.3059246596)
+
+etrs89tm35fin2wgs84(EUREF_FIN)
+// res0: com.sanoma.cda.geo.Point = Point(60.16720650000114,24.943796000000106)
+```
+ 
