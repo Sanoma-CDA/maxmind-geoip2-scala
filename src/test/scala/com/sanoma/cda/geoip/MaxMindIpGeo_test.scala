@@ -37,10 +37,10 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
       Some(IpLocation(
         countryCode = Some("NO"),
         countryName = Some("Norway"),
-        region = Some("Oslo County"),
-        city = Some("Oslo"),
-        geoPoint = Some(Point(59.9167,10.75)),
-        postalCode = Some("6455"),
+        region = Some("Akershus"),
+        city = Some("As"),
+        geoPoint = Some(Point(59.6647,10.7947)),
+        postalCode = Some("1430"),
         continent = Some("Europe")
       )),
 
