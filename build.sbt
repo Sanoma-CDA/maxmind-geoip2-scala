@@ -17,9 +17,10 @@ scalacOptions ++= Seq("-feature", "-deprecation")
 
 /**
  * uncomment in order to publish manually
- * githubOwner := "seekingalpha"
- * githubRepository := "maxmind-geoip2-scala"
  * */
+githubOwner := "seekingalpha"
+githubRepository := "maxmind-geoip2-scala"
+
 /**
  * to override a package uncomment these lines
  * publishConfiguration := publishConfiguration.value.withOverwrite(true)
