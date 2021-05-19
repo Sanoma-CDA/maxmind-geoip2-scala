@@ -16,7 +16,9 @@ jobs:
         java-version: '8'
         distribution: 'adopt'
     - name: Test and Deploy
-      run: sbt test publish
+      run: |
+      ./src/test/resources/download_GeoLite2-City.sh
+      sbt test publish
       env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
