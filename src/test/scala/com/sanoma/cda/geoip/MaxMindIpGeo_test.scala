@@ -12,13 +12,11 @@
  */
 package com.sanoma.cda.geoip
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As
 import com.sanoma.cda.geo._
 import org.scalatest.flatspec._
 import org.scalatest.matchers._
 
 import java.net.InetAddress
-import scala.reflect.internal.util.ThreeValues.NO
 
 class MaxMindIpGeo_test extends AnyFlatSpec with should.Matchers {
 
@@ -40,9 +38,11 @@ class MaxMindIpGeo_test extends AnyFlatSpec with should.Matchers {
         countryName = Some("Norway"),
         region = Some("Viken"),
         city = Some("As"),
-        geoPoint = Some(Point(59.6699,10.7556)),
+        geoPoint = Some(Point(59.6699, 10.7556)),
         postalCode = Some("1433"),
-        continent = Some("Europe")
+        continent = Some("Europe"),
+        regionCode = Some("30"),
+        timezone = Some("Europe/Oslo")
       )),
     "128.232.0.0" -> // Cambridge uni address, taken from http://www.ucs.cam.ac.uk/network/ip/camnets.html
       Some(IpLocation(
@@ -50,9 +50,11 @@ class MaxMindIpGeo_test extends AnyFlatSpec with should.Matchers {
         countryName = Some("United Kingdom"),
         region = Some("Cambridgeshire"),
         city = Some("Cambridge"),
-        geoPoint = Some(Point(52.2087,0.0986)),
+        geoPoint = Some(Point(52.2087, 0.0986)),
         postalCode = Some("CB3"),
-        continent = Some("Europe")
+        continent = Some("Europe"),
+        regionCode = Some("CAM"),
+        timezone = Some("Europe/London")
       )),
 
     "4.2.2.2" -> // Famous DNS server, taken from http://www.tummy.com/articles/famous-dns-server/
@@ -63,7 +65,9 @@ class MaxMindIpGeo_test extends AnyFlatSpec with should.Matchers {
         city = None,
         geoPoint = Some(Point(37.751, -97.822)),
         postalCode = None,
-        continent = Some("North America")
+        continent = Some("North America"),
+        regionCode = None,
+        timezone = Some("America/Chicago")
       )),
 
     "194.60.0.0" -> // UK Parliament, taken from http://en.wikipedia.org/wiki/Wikipedia:Blocking_IP_addresses
@@ -74,7 +78,9 @@ class MaxMindIpGeo_test extends AnyFlatSpec with should.Matchers {
         city = None,
         geoPoint = Some(Point(51.4964, -0.1224)),
         postalCode = None,
-        continent = Some("Europe")
+        continent = Some("Europe"),
+        regionCode = None,
+        timezone = Some("Europe/London")
       )),
 
     "192.0.2.0" -> // Invalid IP address, as per http://stackoverflow.com/questions/10456044/what-is-a-good-invalid-ip-address-to-use-for-unit-tests
@@ -83,7 +89,7 @@ class MaxMindIpGeo_test extends AnyFlatSpec with should.Matchers {
 
   "MaxMindIpGeo" should "getLocationWithoutLruCache" in {
     for ((address, expected) <- testData) {
-      val geo = MaxMindIpGeo(MaxMindDB, 0, synchronized = false)
+      val geo = MaxMindIpGeo(MaxMindDB, 0)
       geo.getLocationWithoutLruCache(address) shouldBe expected
     }
   }
@@ -92,13 +98,13 @@ class MaxMindIpGeo_test extends AnyFlatSpec with should.Matchers {
     val cacheSize = List(1000, 10000)
 
     for (cache <- cacheSize; (address, expected) <- testData) {
-      val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = false)
+      val geo = MaxMindIpGeo(MaxMindDB, cache)
       geo.getLocationWithLruCache(address) shouldBe expected
     }
 
     // again from the cache
     for (cache <- cacheSize; (address, expected) <- testData) {
-      val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = false)
+      val geo = MaxMindIpGeo(MaxMindDB, cache)
       geo.getLocationWithLruCache(address) shouldBe expected
     }
   }
@@ -107,13 +113,13 @@ class MaxMindIpGeo_test extends AnyFlatSpec with should.Matchers {
     val cacheSize = List(0, 1000, 10000)
 
     for (cache <- cacheSize; (address, expected) <- testData) {
-      val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = false)
+      val geo = MaxMindIpGeo(MaxMindDB, cache)
       geo.getLocation(address) shouldBe expected
     }
 
     // again from the cache
     for (cache <- cacheSize; (address, expected) <- testData) {
-      val geo = MaxMindIpGeo(MaxMindDB, cache, synchronized = false)
+      val geo = MaxMindIpGeo(MaxMindDB, cache)
       geo.getLocation(address) shouldBe expected
     }
   }
@@ -178,7 +184,9 @@ class MaxMindIpGeo_test extends AnyFlatSpec with should.Matchers {
       city = None,
       geoPoint = None,
       postalCode = None,
-      continent = Some("North America")
+      continent = Some("North America"),
+      regionCode = None,
+      timezone = Some("America/Chicago")
     ))
 
     // Use the normal way
@@ -207,7 +215,9 @@ class MaxMindIpGeo_test extends AnyFlatSpec with should.Matchers {
       city = None,
       geoPoint = None,
       postalCode = None,
-      continent = Some("North America")
+      continent = Some("North America"),
+      regionCode = None,
+      timezone = Some("America/Chicago")
     ))
 
     // Use the normal way
@@ -231,6 +241,4 @@ class MaxMindIpGeo_test extends AnyFlatSpec with should.Matchers {
     geo.getLocation("4.2.2.2") shouldBe None
 
   }
-
-
 }

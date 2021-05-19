@@ -12,22 +12,23 @@
  */
 package com.sanoma.cda.geoip
 
-import com.maxmind.geoip2.model.CityResponse
 import com.sanoma.cda.geo._
 
 /**
  * Case class to hold the location information from MaxMind.
  */
-case class IpLocation(
-                       countryCode: Option[String],
-                       countryName: Option[String],
-                       region: Option[String], // should look more into this...
-                       city: Option[String],
-                       geoPoint: Option[Point],
-                       postalCode: Option[String],
-                       continent: Option[String])
+case class IpLocation(countryCode: Option[String],
+                      countryName: Option[String],
+                      region: Option[String],
+                      city: Option[String],
+                      geoPoint: Option[Point],
+                      postalCode: Option[String],
+                      continent: Option[String],
+                      regionCode: Option[String], // should look more into this...
+                      timezone: Option[String])
 
 // MaxMind
+
 import com.maxmind.geoip2.model.CityResponse
 
 /**
@@ -36,8 +37,8 @@ import com.maxmind.geoip2.model.CityResponse
 object IpLocation {
 
   // Doesn't make sense to only have Latitude or Longitude
-  def combineLatLong(lat: Option[Double], lon: Option[Double]) = (lat, lon) match {
-    case (Some(lat), Some(lon)) => Some(Point(lat,lon))
+  def combineLatLong(lat: Option[Double], lon: Option[Double]): Option[Point] = (lat, lon) match {
+    case (Some(lat), Some(lon)) => Some(Point(lat, lon))
     case _ => None
   }
 
@@ -56,6 +57,8 @@ object IpLocation {
     if (omni.getCity != null) Option(omni.getCity.getName) else None,
     if (omni.getLocation != null) combineLatLong(jDoubleOptionify(omni.getLocation.getLatitude), jDoubleOptionify(omni.getLocation.getLongitude)) else None,
     if (omni.getPostal != null) Option(omni.getPostal.getCode) else None,
-    if (omni.getContinent != null) Option(omni.getContinent.getName) else None
+    if (omni.getContinent != null) Option(omni.getContinent.getName) else None,
+    if (omni.getMostSpecificSubdivision != null) Option(omni.getMostSpecificSubdivision.getIsoCode) else None,
+    if (omni.getLocation.getTimeZone != null) Option(omni.getLocation.getTimeZone) else None
   )
 }
