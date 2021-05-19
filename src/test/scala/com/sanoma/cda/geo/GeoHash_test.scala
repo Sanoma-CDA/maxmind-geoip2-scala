@@ -9,26 +9,27 @@
  * software distributed under the Apache License Version 2.0 is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
- */package com.sanoma.cda.geo
+ */
+package com.sanoma.cda.geo
 
-import org.scalatest.FunSuite
-import org.scalatest.prop.PropertyChecks
-import org.scalatest.Matchers._
+import com.sanoma.cda.geo.GeoHash.{decodeMap, _}
+import org.scalatest.flatspec._
+import org.scalatest.matchers._
 
-import com.sanoma.cda.geo.GeoHash._
-
-class GeoHash_test extends FunSuite with PropertyChecks {
+class GeoHash_test extends AnyFlatSpec with should.Matchers {
   // let's create some test hashes
   val rand = scala.util.Random
+
   def randomHash(len: Int) = {
     val chars = decodeMap.keys.toList
     (1 to len).map(i => chars(rand.nextInt(chars.length - 1))).mkString("")
   }
+
   val hashLengths = (2 to 12).toList
   val nEachLength = 1000
   val geohashMax = 10 // from above
   val length1Hashes = List(base32.map(_.toString))
-  val otherLengthHashes = hashLengths.map{l => (1 to nEachLength).toList.map(i => randomHash(l))}
+  val otherLengthHashes = hashLengths.map { l => (1 to nEachLength).toList.map(i => randomHash(l)) }
   val differentLengthHashes = length1Hashes ++ otherLengthHashes
 
   // let's create some test points
@@ -37,6 +38,7 @@ class GeoHash_test extends FunSuite with PropertyChecks {
   def randLatitude = randDouble(-90.0, 90.0)
   def randLongitude = randDouble(-180.0, 180.0)
   def randPoint = Point(randLatitude, randLongitude)
+
   val nPoints = 1000 // geoHashMax applies
   val pointsToTest = (1 to nPoints).map(i => randPoint)
 
@@ -44,8 +46,11 @@ class GeoHash_test extends FunSuite with PropertyChecks {
   // Some functions to access geohash.org
   def decodeFromGeohashOrg(gh: Geohash): Point = {
     val expectedStr = scala.io.Source.fromURL(s"http://geohash.org/${gh}/text").getLines.toList
-    expectedStr.head.split(" ") match {case Array(lat,long, _*) => Point(lat.toDouble, long.toDouble)}
+    expectedStr.head.split(" ") match {
+      case Array(lat, long, _*) => Point(lat.toDouble, long.toDouble)
+    }
   }
+
   def encodeFromGeohashOrg(len: Int)(point: Point): Geohash = {
     assert(len <= 12)
     val expectedStr = scala.io.Source.fromURL(s"http://geohash.org/?q=${point.latitude},${point.longitude}&format=url&redirect=0&maxlen=${len}").getLines.toList
@@ -58,15 +63,15 @@ class GeoHash_test extends FunSuite with PropertyChecks {
    * This is for testing the rounding which is not the most obvious.
    * Most implementations seem to round incorrectly when compared to the wikipedia page.
    * "Final rounding should be done carefully in a way that
-   *  min ≤ round(value) ≤ max"
+   * min ≤ round(value) ≤ max"
    *
    */
-  test("decode: test rounding") {
+  "GeoHash" should "decode: test rounding" in {
     val hashesToTest = differentLengthHashes.flatten
     // this is the rounded coordinates
-    val hashesCalculated = hashesToTest.map{gh => decode(gh)}
+    val hashesCalculated = hashesToTest.map { gh => decode(gh) }
     // from here we get the boundaries:
-    val hashesFullPrecision = hashesToTest.map{gh => decodeFully(gh)}
+    val hashesFullPrecision = hashesToTest.map { gh => decodeFully(gh) }
 
     hashesToTest.zip(hashesCalculated.zip(hashesFullPrecision)) foreach {
       case (hash, (p, (lat, lon, late, lone))) => {
@@ -100,23 +105,23 @@ class GeoHash_test extends FunSuite with PropertyChecks {
    * Unfortunately, it seems that geohash.org is rounding incorrectly.
    * Therefore, the epsilon is quite large.
    */
-  test("decode: test N against geohash.org") {
+  "GeoHash" should "decode: test N against geohash.org" in {
     val epsilons = List(1.0, 1.0, 1.0, 1.0, 1.0, 0.1, 0.01, 0.001, 0.0001, 0.0001, 0.00001, 0.000001)
     // NOTE: hashes with length 1 fail to get the same values as from geohash.org - often they get +1 degree
     // this is due the rounding in the precision function...
     for (hashesToTestAll <- differentLengthHashes) {
       val hashesToTest = hashesToTestAll.take(geohashMax)
       val len = hashesToTest(0).length
-      val epsilon = epsilons(len-1)
+      val epsilon = epsilons(len - 1)
       println(s"Testing hashes of length $len with epsilon $epsilon")
-      val hashesExpected = hashesToTest.par.map{gh => decodeFromGeohashOrg(gh)}.seq
-      val hashesCalculated = hashesToTest.map{gh => decode(gh)}
+      val hashesExpected = hashesToTest.par.map { gh => decodeFromGeohashOrg(gh) }.seq
+      val hashesCalculated = hashesToTest.map { gh => decode(gh) }
       hashesToTest.zip(hashesExpected.zip(hashesCalculated)) foreach {
         case (hash, (expected, calculated)) => {
           // we print these out as otherwise it's a bit hard to know what failed...
           if (expected != calculated) println(s"decoding hash: $hash => ${calculated}, geohash.org claims it to be ${expected}")
-          math.abs(calculated._1-expected._1) should be <= epsilon
-          math.abs(calculated._2-expected._2) should be <= epsilon
+          math.abs(calculated._1 - expected._1) should be <= epsilon
+          math.abs(calculated._2 - expected._2) should be <= epsilon
         }
       }
     }
@@ -126,17 +131,15 @@ class GeoHash_test extends FunSuite with PropertyChecks {
    * Testing encoding against geohash.org
    * Unfortunately, it seems that geohash.org also encodes incorrectly.
    */
-  test("encode: test N against geohash.org") {
-    val rand = scala.util.Random
-
+  "GeoHash" should "encode: test N against geohash.org" in {
     val precisionsToTest = 1 to 12
 
     for (precision <- precisionsToTest) {
       println(s"Testing precision $precision")
       val points = pointsToTest.take(geohashMax)
       val encodefromGeohashOrgWithPrecision = encodeFromGeohashOrg(precision) _
-      val pointsExpected = points.par.map{ case p => encodefromGeohashOrgWithPrecision(p) }
-      val pointsCalculated = points.par.map{ case p => encode(p, precision) }
+      val pointsExpected = points.par.map { case p => encodefromGeohashOrgWithPrecision(p) }
+      val pointsCalculated = points.par.map { case p => encode(p, precision) }
       points.zip(pointsExpected.zip(pointsCalculated)) foreach {
         case (point, (expected, calculated)) => {
           if (expected != calculated) {
@@ -158,7 +161,7 @@ class GeoHash_test extends FunSuite with PropertyChecks {
               } else {
                 // So, yeah, could be that our high precision is further away, but still the difference should be small
                 // BTW, distance is in meters, so the difference is really small here...
-                math.abs(point.distanceTo(pointFromThis)-point.distanceTo(pointFromGHO)) should be <= 0.01
+                math.abs(point.distanceTo(pointFromThis) - point.distanceTo(pointFromGHO)) should be <= 0.01
               }
             }
 
@@ -170,10 +173,10 @@ class GeoHash_test extends FunSuite with PropertyChecks {
     }
   }
 
-  test("encode - decode round-trip") {
+  "GeoHash" should "encode - decode round-trip" in {
     val precision = 12
     val epsilon = 1e-6
-    val calculated = pointsToTest.par.map{p => decode(encode(p, precision))}
+    val calculated = pointsToTest.par.map { p => decode(encode(p, precision)) }
     pointsToTest.zip(calculated) foreach {
       case (orig, calc) => {
         if (orig != calc) println(s"encoding and decoding: $orig should be $calc")
@@ -183,9 +186,9 @@ class GeoHash_test extends FunSuite with PropertyChecks {
     }
   }
 
-  test("decode - encode round-trip") {
+  "GeoHash" should "decode - encode round-trip" in {
     val hashesToTest = differentLengthHashes.flatten
-    val calculated = hashesToTest.par.map{h =>
+    val calculated = hashesToTest.par.map { h =>
       val p = h.length
       val tmp = decodeFully(h) // full decode doesn't round, with rounding this probably won't work
       encode(Point(tmp._1, tmp._2), p)
@@ -198,8 +201,8 @@ class GeoHash_test extends FunSuite with PropertyChecks {
     }
   }
 
-  test("test longest common prefix") {
-    val strs1 = List("interspecies","interstellar","interstate")
+  "GeoHash" should "test longest common prefix" in {
+    val strs1 = List("interspecies", "interstellar", "interstate")
     val expected1 = "inters"
     longestCommonPrefix(strs1) shouldBe expected1
 
@@ -211,7 +214,7 @@ class GeoHash_test extends FunSuite with PropertyChecks {
     val expected3 = ""
     longestCommonPrefix(strs3) shouldBe expected3
 
-    for (r <- 1 to 100){
+    for (r <- 1 to 100) {
       println(r)
       val commonPrefix = randomHash(7)
 
@@ -222,14 +225,15 @@ class GeoHash_test extends FunSuite with PropertyChecks {
   }
 
 
-  test("smallesCommonGeohash") {
+  "GeoHash" should "smallesCommonGeohash" in {
     val commonPrefix = randomHash(6)
+
     def randHash(seed: Int) = {
       commonPrefix + seed + randomHash(2 + rand.nextInt(4))
     }
 
     val hashes = (1 to 20).map(i => randHash(i))
-    val points = hashes.map{h =>
+    val points = hashes.map { h =>
       val (latMid, lonMid, latE, lonE) = decodeFully(h)
       Point(latMid, lonMid)
     }

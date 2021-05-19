@@ -12,17 +12,16 @@
  */
 package com.sanoma.cda.geo
 
-import org.scalatest.FunSuite
-import org.scalatest.prop.PropertyChecks
-import org.scalatest.Matchers._
+import org.scalatest.flatspec._
+import org.scalatest.matchers._
 
-class GeoAreaMap_test extends FunSuite with PropertyChecks {
+class GeoAreaMap_test extends AnyFlatSpec with should.Matchers {
 
-  test("GeoAreaMap priority") {
+  "GeoAreaMap" should "GeoAreaMap priority" in {
     val data = List(
-      "0" -> Polygon(List((0,0), (1,0), (1,1), (0,1))),
-      "1" -> Polygon(List((0,0), (1,0), (1,1), (0,1))),
-      "2" -> Polygon(List((0,0), (1,0), (1,1), (0,1)))
+      "0" -> Polygon(List((0, 0), (1, 0), (1, 1), (0, 1))),
+      "1" -> Polygon(List((0, 0), (1, 0), (1, 1), (0, 1))),
+      "2" -> Polygon(List((0, 0), (1, 0), (1, 1), (0, 1)))
     )
     val gmap0 = GeoAreaMap.fromSeq(data)
     gmap0.get((0.5, 0.5)) shouldBe Some("0")
@@ -32,11 +31,11 @@ class GeoAreaMap_test extends FunSuite with PropertyChecks {
     gmap1.get((0.5, 0.5)) shouldBe Some("1")
   }
 
-  test("Map findOne") {
+  "GeoAreaMap" should "Map findOne" in {
     val turku = Point(60.45, 22.25)
     val helsinki = Point(60.17, 24.94)
-    val tamminiemi = Point(60.1892,24.8838)
-    val mantyniemi = Point(60.1844,24.8968)
+    val tamminiemi = Point(60.1892, 24.8838)
+    val mantyniemi = Point(60.1844, 24.8968)
     val hCircle = Circle(helsinki, 3500) // 3.5km around Helsinki
     val tCircle = Circle(tamminiemi, 1000)
     val hRectangle = Rectangle(lowerLeft = (60.15, 24.84), upperRight = (60.20, 25.00))
@@ -49,11 +48,11 @@ class GeoAreaMap_test extends FunSuite with PropertyChecks {
     gmap.get(mantyniemi) shouldBe Some("tamminiemi")
   }
 
-  test("Map findMany") {
+  "GeoAreaMap" should "Map findMany" in {
     val turku = Point(60.45, 22.25)
     val helsinki = Point(60.17, 24.94)
-    val tamminiemi = Point(60.1892,24.8838)
-    val mantyniemi = Point(60.1844,24.8968)
+    val tamminiemi = Point(60.1892, 24.8838)
+    val mantyniemi = Point(60.1844, 24.8968)
     val hCircle = Circle(helsinki, 3500) // 3.5km around Helsinki
     val tCircle = Circle(tamminiemi, 1000)
     val hRectangle = Rectangle(lowerLeft = (60.15, 24.84), upperRight = (60.20, 25.00))
@@ -67,21 +66,23 @@ class GeoAreaMap_test extends FunSuite with PropertyChecks {
   }
 
 
-  test("GeoAreaMap reading") {
+  "GeoAreaMap" should "GeoAreaMap reading" in {
     val strs =
       """1:0.0,0.0,0.0 1.0,0.0,0.0 1.0,1.0,0.0 0.0,1.0,0.0
         |2:0.0,1.0,0.0 1.0,1.0,0.0 1.0,2.0,0.0 0.0,2.0,0.0
         |3:1.0,1.0,0.0 2.0,1.0,0.0 2.0,2.0,0.0 1.0,2.0,0.0
         |4:1.0,0.0,0.0 2.0,0.0,0.0 2.0,1.0,0.0 1.0,1.0,0.0""".stripMargin.split("\n")
+
     def parser(s: String): Option[(String, Polygon)] = {
       val nameSplitter = """([^:]+):(.+)""".r
       val nameSplitter(name, data) = s
       val coordinateMatcher = """([+-]?\d+\.\d*),([+-]?\d+\.\d*),([+-]?\d+\.\d*) *""".r
-      val poly = coordinateMatcher.findAllIn(data).matchData.map(m => m.subgroups).toList.map{
+      val poly = coordinateMatcher.findAllIn(data).matchData.map(m => m.subgroups).toList.map {
         l => Point(l(0).toDouble, l(1).toDouble)
       }
       Some((name, Polygon(poly)))
     }
+
     val geoMap = GeoAreaMap.fromStrIter(strs.toIterator, parser)
 
     geoMap.get((0.5, 0.5)) shouldBe Some("1")
@@ -93,17 +94,19 @@ class GeoAreaMap_test extends FunSuite with PropertyChecks {
     geoMap.get((10.0, 10.0)) shouldBe None
   }
 
-  test("GeoAreaMap reading from file") {
+  "GeoAreaMap" should "GeoAreaMap reading from file" in {
     val file = "src/test/resources/GeoAreaMap_polygons.txt"
+
     def parser(s: String): Option[(String, Polygon)] = {
       val nameSplitter = """([^:]+):(.+)""".r
       val nameSplitter(name, data) = s
       val coordinateMatcher = """([+-]?\d+\.\d*),([+-]?\d+\.\d*),([+-]?\d+\.\d*) *""".r
-      val poly = coordinateMatcher.findAllIn(data).matchData.map(m => m.subgroups).toList.map{
+      val poly = coordinateMatcher.findAllIn(data).matchData.map(m => m.subgroups).toList.map {
         l => Point(l(0).toDouble, l(1).toDouble)
       }
       Some((name, Polygon(poly)))
     }
+
     val geoMap = GeoAreaMap.fromFile(file, parser)
 
     geoMap.get((0.5, 0.5)) shouldBe Some("1")

@@ -12,13 +12,14 @@
  */
 package com.sanoma.cda.geo
 
-import org.scalatest.FunSuite
-import org.scalatest.prop.PropertyChecks
-import org.scalatest.Matchers._
+import org.scalatest.flatspec._
+import org.scalatest.matchers._
 
-class GeoPrivacy_test extends FunSuite with PropertyChecks {
+class GeoPrivacy_test extends AnyFlatSpec with should.Matchers {
+
   import GeoPrivacy._
   import funcs._
+
   import math.abs
 
   val helsinki = Point(60.17, 24.94)
@@ -26,37 +27,45 @@ class GeoPrivacy_test extends FunSuite with PropertyChecks {
   val amsterdam = Point(52.37, 4.895)
   val cities = List(helsinki, oulu, amsterdam)
 
-  test("randomUniform") {
+  "GeoPrivacy" should "randomUniform" in {
     val limits = List((0.0, 1.0), (-2.3, -1.0), (-5.0, 5.0), (3.0, 14.0))
     for (lim <- limits) {
-      val foo = Array.fill(100000){randomUniform(lim._1, lim._2)}
+      val foo = Array.fill(100000) {
+        randomUniform(lim._1, lim._2)
+      }
       abs(foo.min - lim._1) should be <= 0.01 * (lim._2 - lim._1)
       abs(foo.max - lim._2) should be <= 0.01 * (lim._2 - lim._1)
       abs(foo.sum / foo.size - (lim._2 + lim._1) / 2.0) should be <= 0.01 * (lim._2 - lim._1)
     }
   }
 
-  test("randomNormal") {
+  "GeoPrivacy" should "randomNormal" in {
     val limits = List((0.0, 1.0), (-2.3, 2.0), (-5.0, 5.0), (3.0, 14.0))
     for (lim <- limits) {
-      val foo = Array.fill(100000){randomNormal(lim._1, lim._2)}
+      val foo = Array.fill(100000) {
+        randomNormal(lim._1, lim._2)
+      }
       abs(foo.sum / foo.size - lim._1) should be <= 0.1
     }
   }
 
-  test("randomTruncatedNormal") {
+  "GeoPrivacy" should "randomTruncatedNormal" in {
     val limits = List((0.0, 1.0), (-2.3, 2.0), (-5.0, 5.0), (3.0, 14.0))
     for (lim <- limits) {
-      val foo = Array.fill(100000){randomTruncatedNormal(lim._1, lim._2)}
+      val foo = Array.fill(100000) {
+        randomTruncatedNormal(lim._1, lim._2)
+      }
       foo.min should be >= lim._1 - 2 * lim._2
       foo.max should be <= lim._1 + 2 * lim._2
       abs(foo.sum / foo.size - lim._1) should be <= 0.1
     }
   }
 
-  test("additiveNoise") {
+  "GeoPrivacy" should "additiveNoise" in {
     for (c <- cities) {
-      val newPoints = Array.fill(100000){ additiveUniformNoise(2.0, 4.0)(c) }
+      val newPoints = Array.fill(100000) {
+        additiveUniformNoise(2.0, 4.0)(c)
+      }
       val distances = newPoints.map(p => (p.latitude - c.latitude, p.longitude - c.longitude))
       val maxLat = distances.map(_._1).max
       val minLat = distances.map(_._1).min
@@ -70,9 +79,11 @@ class GeoPrivacy_test extends FunSuite with PropertyChecks {
     }
   }
 
-  test("additiveNoiseMeters") {
+  "GeoPrivacy" should "additiveNoiseMeters" in {
     for (c <- cities) {
-      val newPoints = Array.fill(100000){ additiveUniformNoiseMeters(200, 1000)(c)}
+      val newPoints = Array.fill(100000) {
+        additiveUniformNoiseMeters(200, 1000)(c)
+      }
       val latDeg = latitudeOffsetInDeg(200)
       val longDeg = longitudeOffsetInDeg(c.latitude, 1000)
       // we need to check the distances separately
@@ -95,9 +106,11 @@ class GeoPrivacy_test extends FunSuite with PropertyChecks {
     }
   }
 
-  test("additiveGaussianNoise") {
+  "GeoPrivacy" should "additiveGaussianNoise" in {
     for (c <- cities) {
-      val newPoints = Array.fill(100000){ additiveGaussianNoise(2.0)(c) }
+      val newPoints = Array.fill(100000) {
+        additiveGaussianNoise(2.0)(c)
+      }
       val distances = newPoints.map(p => (p.latitude - c.latitude, p.longitude - c.longitude))
       val maxLat = distances.map(_._1).max
       val minLat = distances.map(_._1).min
@@ -111,9 +124,11 @@ class GeoPrivacy_test extends FunSuite with PropertyChecks {
     }
   }
 
-  test("additiveGaussianNoiseMeters") {
+  "GeoPrivacy" should "additiveGaussianNoiseMeters" in {
     for (c <- cities) {
-      val newPoints = Array.fill(100000){ additiveGaussianNoiseMeters(200)(c) }
+      val newPoints = Array.fill(100000) {
+        additiveGaussianNoiseMeters(200)(c)
+      }
       val latDeg = latitudeOffsetInDeg(400)
       val longDeg = longitudeOffsetInDeg(c.latitude, 400)
       // we need to check the distances separately
@@ -136,7 +151,7 @@ class GeoPrivacy_test extends FunSuite with PropertyChecks {
     }
   }
 
-  test("discretized") {
+  "GeoPrivacy" should "discretized" in {
     val p = Point(1.234567, 3.4567890)
     discretize(0)(p) shouldBe Point(1, 3)
     discretize(1)(p) shouldBe Point(1.2, 3.5)
@@ -145,13 +160,15 @@ class GeoPrivacy_test extends FunSuite with PropertyChecks {
     discretize(4)(p) shouldBe Point(1.2346, 3.4568)
   }
 
-  def countOccurances[T](list: Seq[T]): Map[T, Int] = list.groupBy{e: T => e}.mapValues(_.length)
+  def countOccurances[T](list: Seq[T]): Map[T, Int] = list.groupBy { e: T => e }.mapValues(_.length)
 
-  test("discretized 2") {
+  "GeoPrivacy" should "discretized 2" in {
     for (c <- cities) {
       val mLat = 1
       val mLong = 2
-      val newPoints = Array.fill(100000){ discretize(1)(additiveUniformNoise(mLat, mLong)(c)) }
+      val newPoints = Array.fill(100000) {
+        discretize(1)(additiveUniformNoise(mLat, mLong)(c))
+      }
       //newPoints foreach println
       val expectedNroOfPoints = (2 * mLat * 10 + 1) * (2 * mLong * 10 + 1)
 
@@ -160,7 +177,5 @@ class GeoPrivacy_test extends FunSuite with PropertyChecks {
       uniquePoints shouldBe expectedNroOfPoints
     }
   }
-
-
 }
 

@@ -12,17 +12,16 @@
  */
 package com.sanoma.cda.geo
 
-import org.scalatest.FunSuite
-import org.scalatest.prop.PropertyChecks
-import org.scalatest.Matchers._
+import org.scalatest.flatspec._
+import org.scalatest.matchers._
 
-class Point_test extends FunSuite with PropertyChecks {
+class Point_test extends AnyFlatSpec with should.Matchers {
 
   // a few points
   val turku = Point(60.45, 22.25)
   val helsinki = Point(60.17, 24.94)
-  val tamminiemi = Point(60.1892,24.8838)
-  val mantyniemi = Point(60.1844,24.8968)
+  val tamminiemi = Point(60.1892, 24.8838)
+  val mantyniemi = Point(60.1844, 24.8968)
 
   // a few reference distances
   // Wolfram Alpha apparently uses the more accurate Vincenty method
@@ -44,9 +43,10 @@ class Point_test extends FunSuite with PropertyChecks {
 
 
   def distError(value: Double, reference: Double) = math.abs(reference - value) / reference
+
   def distCheck(f: (Point, Point) => Double, pair: (Point, Point), ref: Map[(Point, Point), Double]) = distError(f(pair._1, pair._2), ref(pair))
 
-  test("distanceSphericalEarth") {
+  "Point" should "distanceSphericalEarth" in {
     import funcs._
     distCheck(distanceSphericalEarth, (tamminiemi, mantyniemi), distAccordingToWolfram) should be < 0.01
     distCheck(distanceSphericalEarth, (turku, helsinki), distAccordingToWolfram) should be < 0.01
@@ -58,7 +58,7 @@ class Point_test extends FunSuite with PropertyChecks {
     distCheck(distanceSphericalEarth, (turku, helsinki), distAccordingToOnlineConv) should be < 0.0001 // Not as accurate
   }
 
-  test("distanceHaversine") {
+  "Point" should "distanceHaversine" in {
     import funcs._
     distCheck(distanceHaversine, (tamminiemi, mantyniemi), distAccordingToWolfram) should be < 0.01
     distCheck(distanceHaversine, (turku, helsinki), distAccordingToWolfram) should be < 0.01
@@ -70,27 +70,28 @@ class Point_test extends FunSuite with PropertyChecks {
     distCheck(distanceHaversine, (turku, helsinki), distAccordingToOnlineConv) should be < 0.00001
   }
 
-  test("geohash conversions") {
+  "Point" should "geohash conversions" in {
     // Full geohash tests in GeoHash_test.scala
     tamminiemi.geoHash shouldBe "ud9wqjpgd845"
     tamminiemi.geoHash(9) shouldBe "ud9wqjpgd"
     Point.fromGeohash("ud9wqjpgd845") shouldBe tamminiemi
-    Point.fromGeohashPrecision("ud9wqjpgd845") shouldBe Point(60.18920003436506,24.883800018578768)
+    Point.fromGeohashPrecision("ud9wqjpgd845") shouldBe Point(60.18920003436506, 24.883800018578768)
   }
 
-  test("latitudeOffsetInDeg") {
+  "Point" should "latitudeOffsetInDeg" in {
     import funcs._
+
     import math.abs
     val offsetMeters0 = List(10, 50, 100, 200, 250, 500, 750, 1000, 2000, 5000, 10000, 20000, 50000)
     val offsetMeters = offsetMeters0 ++ offsetMeters0.map(-_)
     val offsetDegrees = offsetMeters.map(m => latitudeOffsetInDeg(m))
     val fromHelsinki = offsetDegrees.map(d => Point(helsinki.latitude + d, helsinki.longitude))
     val accurate = fromHelsinki.map(p => distanceHaversine(helsinki, p))
-    val errorP = offsetMeters.zip(accurate).map{case (o, n) => abs(abs(o)-n)/abs(o)}
-    errorP.foreach{e => e should be < 0.01}
+    val errorP = offsetMeters.zip(accurate).map { case (o, n) => abs(abs(o) - n) / abs(o) }
+    errorP.foreach { e => e should be < 0.01 }
   }
 
-  test("longitudeOffsetInDeg") {
+  "Point" should "longitudeOffsetInDeg" in {
     import funcs._
     //import com.sanoma.cda.geo.funcs._
     //import com.sanoma.cda.geo.Point
@@ -104,12 +105,12 @@ class Point_test extends FunSuite with PropertyChecks {
       m <- offsetMeters
     ) yield (lat, m)
 
-    val errorP = toTest.map{ case (lat, m) =>
-        val offsetDeg = longitudeOffsetInDeg(lat, m)
-        val newPoint = Point(lat, longitude + offsetDeg)
-        val accurate = distanceHaversine(Point(lat, longitude), newPoint)
-      (lat, m, accurate, abs(abs(m) - accurate)/abs(m))
+    val errorP = toTest.map { case (lat, m) =>
+      val offsetDeg = longitudeOffsetInDeg(lat, m)
+      val newPoint = Point(lat, longitude + offsetDeg)
+      val accurate = distanceHaversine(Point(lat, longitude), newPoint)
+      (lat, m, accurate, abs(abs(m) - accurate) / abs(m))
     }
-    errorP.map(_._4).foreach{e => e should be < 0.01}
+    errorP.map(_._4).foreach { e => e should be < 0.01 }
   }
 }

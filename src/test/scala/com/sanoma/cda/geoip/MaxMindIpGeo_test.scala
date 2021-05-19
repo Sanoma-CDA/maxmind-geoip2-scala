@@ -12,19 +12,20 @@
  */
 package com.sanoma.cda.geoip
 
-import org.scalatest.FunSuite
-import org.scalatest.prop.PropertyChecks
-import org.scalatest.Matchers._
-import java.net.InetAddress
-
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As
 import com.sanoma.cda.geo._
+import org.scalatest.flatspec._
+import org.scalatest.matchers._
 
-class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
+import java.net.InetAddress
+import scala.reflect.internal.util.ThreeValues.NO
+
+class MaxMindIpGeo_test extends AnyFlatSpec with should.Matchers {
 
   // to run tests, please download the Database to src/test/resources directory
   val MaxMindDB = "src/test/resources/GeoLite2-City.mmdb"
 
-  test("getInetAddress") {
+  "MaxMindIpGeo" should "getInetAddress" in {
     val geo = MaxMindIpGeo(MaxMindDB, 0)
     geo.getInetAddress("123.123.123.123") shouldBe Some(InetAddress.getByName("123.123.123.123"))
     geo.getInetAddress("localhost").get.getHostAddress shouldBe "127.0.0.1"
@@ -37,21 +38,20 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
       Some(IpLocation(
         countryCode = Some("NO"),
         countryName = Some("Norway"),
-        region = Some("Oslo County"),
-        city = Some("Oslo"),
-        geoPoint = Some(Point(59.9167,10.75)),
-        postalCode = Some("6455"),
+        region = Some("Viken"),
+        city = Some("As"),
+        geoPoint = Some(Point(59.6699,10.7556)),
+        postalCode = Some("1433"),
         continent = Some("Europe")
       )),
-
     "128.232.0.0" -> // Cambridge uni address, taken from http://www.ucs.cam.ac.uk/network/ip/camnets.html
       Some(IpLocation(
         countryCode = Some("GB"),
         countryName = Some("United Kingdom"),
         region = Some("Cambridgeshire"),
         city = Some("Cambridge"),
-        geoPoint = Some(Point(52.2,0.1167)),
-        postalCode = Some("CB5"),
+        geoPoint = Some(Point(52.2087,0.0986)),
+        postalCode = Some("CB3"),
         continent = Some("Europe")
       )),
 
@@ -81,14 +81,14 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
       None
   )
 
-  test("getLocationWithoutLruCache") {
+  "MaxMindIpGeo" should "getLocationWithoutLruCache" in {
     for ((address, expected) <- testData) {
       val geo = MaxMindIpGeo(MaxMindDB, 0, synchronized = false)
       geo.getLocationWithoutLruCache(address) shouldBe expected
     }
   }
 
-  test("getLocationWithLruCache") {
+  "MaxMindIpGeo" should "getLocationWithLruCache" in {
     val cacheSize = List(1000, 10000)
 
     for (cache <- cacheSize; (address, expected) <- testData) {
@@ -103,7 +103,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
     }
   }
 
-  test("getLocation") {
+  "MaxMindIpGeo" should "getLocation" in {
     val cacheSize = List(0, 1000, 10000)
 
     for (cache <- cacheSize; (address, expected) <- testData) {
@@ -118,14 +118,14 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
     }
   }
 
-  test("getLocationWithoutLruCache - sync") {
+  "MaxMindIpGeo" should "getLocationWithoutLruCache - sync" in {
     for ((address, expected) <- testData) {
       val geo = MaxMindIpGeo(MaxMindDB, 0, synchronized = true)
       geo.getLocationWithoutLruCache(address) shouldBe expected
     }
   }
 
-  test("getLocationWithLruCache - sync") {
+  "MaxMindIpGeo" should "getLocationWithLruCache - sync" in {
     val cacheSize = List(1000, 10000)
 
     for (cache <- cacheSize; (address, expected) <- testData) {
@@ -140,7 +140,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
     }
   }
 
-  test("getLocation - sync") {
+  "MaxMindIpGeo" should "getLocation - sync" in {
     val cacheSize = List(0, 1000, 10000)
 
     for (cache <- cacheSize; (address, expected) <- testData) {
@@ -155,7 +155,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
     }
   }
 
-  test("postfilter - Remove point if is' on blacklist") {
+  "MaxMindIpGeo" should "postfilter - Remove point if is' on blacklist" in {
     // create function for mapping/filtering
     // blacklist the first geo coordinate:
     // (59.95,10.75)
@@ -185,12 +185,12 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
     geo.getLocation("4.2.2.2") shouldBe expected
 
     // others should still be fine:
-    for ((address, expected) <- testData.filterKeys{k => k != "4.2.2.2"}) {
+    for ((address, expected) <- testData.filterKeys { k => k != "4.2.2.2" }) {
       geo.getLocationWithoutLruCache(address) shouldBe expected
     }
   }
 
-  test("postfilter - Remove point if no city") {
+  "MaxMindIpGeo" should "postfilter - Remove point if no city" in {
     // create function for mapping/filtering
     // Check the city, if it's missing, just throw away the lat,long
     def noPointIfNoCity(loc: IpLocation) = {
@@ -216,7 +216,7 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
 
   }
 
-  test("postfilter - None if no city") {
+  "MaxMindIpGeo" should "postfilter - None if no city" in {
     // create function for mapping/filtering
     // Check the city, if it's missing then throw away everything
     val noneIfNoCity: MaxMindIpGeo.IpLocationFilter = loc => {
@@ -229,9 +229,8 @@ class MaxMindIpGeo_test extends FunSuite with PropertyChecks {
     // Use the normal way
     val geo = MaxMindIpGeo(MaxMindDB, 0, postFilterIpLocation = noneIfNoCity)
     geo.getLocation("4.2.2.2") shouldBe None
-    
-  }
 
+  }
 
 
 }
